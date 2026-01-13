@@ -23,14 +23,14 @@ class StoreOrUpdateRequest extends FormRequest
             'secondary_mobile_no' => 'nullable|digits:10',
             'primary_email' => 'required|email|max:100',
             'secondary_email' => 'nullable|email|max:100',
-            'logo_image' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:2048',
-            'fav_icon_image' => 'nullable|file|mimes:jpg,jpeg,png,ico,webp|max:1024',
+            'logo_image' => 'nullable|file|mimes:jpg,jpeg,png,webp',
+            'fav_icon_image' => 'nullable|file|mimes:jpg,jpeg,png,ico,webp',
             'instagram_link' => 'nullable|url',
             'facebook_link' => 'nullable|url',
             'whatsapp_link' => 'nullable|url',
             'linkedin_link' => 'nullable|url',
 
-            // Address fields (all required)
+            // Address fields
             'street' => 'required|string|max:255',
             'city' => 'required|string|max:100',
             'district' => 'required|string|max:100',
@@ -39,7 +39,6 @@ class StoreOrUpdateRequest extends FormRequest
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
 
-            // Type and label enforced for site address
             'type' => [
                 'sometimes',
                 Rule::in([2]),
@@ -81,7 +80,6 @@ class StoreOrUpdateRequest extends FormRequest
     {
         $errors = $validator->errors()->toArray();
 
-        // Grab the first error message
         $firstErrorMessage = reset($errors)[0] ?? 'Validation error';
 
         throw new HttpResponseException(response()->json([

@@ -33,56 +33,70 @@ class SiteSettingRepository implements SiteSettingRepositoryInterface
     {
         return DB::transaction(function () use ($data) {
 
-            // Get existing site setting (only one record)
             $siteSetting = SiteSetting::first();
-
-            // Handle logo image
-            if (isset($data['logo_image']) && $data['logo_image'] instanceof \Illuminate\Http\UploadedFile) {
-                if ($siteSetting?->logo_image) {
-                    $this->imageService->delete($siteSetting->logo_image);
-                }
-                $data['logo_image'] = $this->imageService->store($data['logo_image'], 'site-settings');
+            if (!empty($data['logo_image']) && $data['logo_image'] instanceof \Illuminate\Http\UploadedFile) {
+                $data['logo_image'] = $siteSetting
+                    ? $this->imageService->replace(
+                        $siteSetting->logo_image,
+                        $data['logo_image'],
+                        'site-settings'
+                    )
+                    : $this->imageService->store($data['logo_image'], 'site-settings');
             }
 
-            // Handle favicon image
-            if (isset($data['fav_icon_image']) && $data['fav_icon_image'] instanceof \Illuminate\Http\UploadedFile) {
-                if ($siteSetting?->fav_icon_image) {
-                    $this->imageService->delete($siteSetting->fav_icon_image);
-                }
-                $data['fav_icon_image'] = $this->imageService->store($data['fav_icon_image'], 'site-settings');
+            if (!empty($data['fav_icon_image']) && $data['fav_icon_image'] instanceof \Illuminate\Http\UploadedFile) {
+                $data['fav_icon_image'] = $siteSetting
+                    ? $this->imageService->replace(
+                        $siteSetting->fav_icon_image,
+                        $data['fav_icon_image'],
+                        'site-settings'
+                    )
+                    : $this->imageService->store($data['fav_icon_image'], 'site-settings');
             }
 
-            // Extract address fields
-            $addressData = Arr::only($data, ['street', 'city', 'district', 'province', 'zip', 'latitude', 'longitude']);
-            $addressData['type'] = 2; // Site
-            $addressData['label'] = 'Store Location';
-            $addressData['status'] = 0;
+            $addressData = Arr::only($data, [
+                'street',
+                'city',
+                'district',
+                'province',
+                'zip',
+                'latitude',
+                'longitude',
+            ]);
 
-            // Create or update the address (only one site address allowed)
-            $siteAddress = Address::where('type', 2)->first();
-            if ($siteAddress) {
-                $siteAddress->update($addressData);
-            } else {
-                $siteAddress = Address::create($addressData);
-            }
+            $addressData += [
+                'type' => 2,
+                'label' => 'Store Location',
+                'status' => 0,
+            ];
 
-            // Remove address fields from site setting data
-            foreach (['street', 'city', 'district', 'province', 'zip', 'latitude', 'longitude'] as $field) {
-                unset($data[$field]);
-            }
+            $siteAddress = Address::updateOrCreate(
+                ['type' => 2],
+                $addressData
+            );
 
-            // Add address_id to site setting
+            /**
+             * Remove address fields from site setting payload
+             */
+            Arr::forget($data, [
+                'street',
+                'city',
+                'district',
+                'province',
+                'zip',
+                'latitude',
+                'longitude',
+            ]);
+
             $data['address_id'] = $siteAddress->id;
 
-            // Create or update site setting
-            if ($siteSetting) {
-                $siteSetting->update($data);
-            } else {
-                $siteSetting = SiteSetting::create($data);
-            }
+         
+            $siteSetting = $siteSetting
+                ? tap($siteSetting)->update($data)
+                : SiteSetting::create($data);
 
-            // Return the updated site setting with address relation
             return $siteSetting->load('address');
         });
     }
+
 }
