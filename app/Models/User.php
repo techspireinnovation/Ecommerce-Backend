@@ -21,6 +21,7 @@ class User extends Authenticatable implements JWTSubject
      * @var list<string>
      */
     protected $fillable = [
+        'id',
         'name',
         'email',
         'password',
@@ -49,7 +50,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return [
             'password' => 'hashed',
-            'last_login_at' => 'datetime', 
+            'last_login_at' => 'datetime',
 
         ];
     }
@@ -58,8 +59,8 @@ class User extends Authenticatable implements JWTSubject
     {
         // Cast to Carbon to use timezone() method
         return Carbon::instance($date)
-                     ->timezone('Asia/Kathmandu')
-                     ->format('Y-m-d H:i:s');
+            ->timezone('Asia/Kathmandu')
+            ->format('Y-m-d H:i:s');
     }
 
 

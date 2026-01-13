@@ -1,15 +1,39 @@
 <?php
+
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SiteSettingController;
 use App\Http\Middleware\RefreshTokensMiddleware;
 use Illuminate\Support\Facades\Route;
 
-// -------- Public routes (no token required) --------
+/*
+|--------------------------------------------------------------------------
+| Public (Website / App)
+|--------------------------------------------------------------------------
+*/
+Route::get('/site-settings', [SiteSettingController::class, 'show']);
+
+/*
+|--------------------------------------------------------------------------
+| Auth
+|--------------------------------------------------------------------------
+*/
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/refresh', [AuthController::class, 'refresh']);
-
-// -------- Protected routes (token + auto-refresh) --------
 Route::middleware([RefreshTokensMiddleware::class])->group(function () {
-    Route::get('/user', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Protected (Admin Dashboard)
+|--------------------------------------------------------------------------
+*/
+// Route::middleware([RefreshTokensMiddleware::class, 'role:admin'])->group(function () {
+    Route::middleware([RefreshTokensMiddleware::class])->group(function () {
+
+    Route::post('/admin/site-settings', [SiteSettingController::class, 'storeOrUpdate']);
+    Route::get('/admin/site-settings', [SiteSettingController::class, 'show']);
+    Route::get('/admin/user', [AuthController::class, 'me']);
+
 });
