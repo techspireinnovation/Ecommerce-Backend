@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SiteSettingController;
+use App\Http\Controllers\SubCategoryController;
 use App\Http\Middleware\RefreshTokensMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/site-settings', [SiteSettingController::class, 'show']);
 
 Route::apiResource('brands', BrandController::class)->only(['index', 'show']);
+Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
 
 /*
 |--------------------------------------------------------------------------
@@ -32,12 +35,18 @@ Route::middleware([RefreshTokensMiddleware::class])->group(function () {
 | Protected (Admin Dashboard)
 |--------------------------------------------------------------------------
 */
-// Route::middleware([RefreshTokensMiddleware::class, 'role:admin'])->group(function () {
-Route::middleware([RefreshTokensMiddleware::class])->group(function () {
+    Route::middleware([RefreshTokensMiddleware::class])->prefix('admin')->group(function () {
+        Route::post('site-settings', [SiteSettingController::class, 'storeOrUpdate']);
+        Route::get('site-settings', [SiteSettingController::class, 'show']);
 
-    Route::post('/admin/site-settings', [SiteSettingController::class, 'storeOrUpdate']);
-    Route::get('/admin/site-settings', [SiteSettingController::class, 'show']);
-    Route::get('/admin/user', [AuthController::class, 'me']);
+        Route::get('users', [AuthController::class, 'me']);
+        Route::get('brands/active', [BrandController::class, 'activeBrands']);
+        Route::apiResource('brands', BrandController::class);
 
-    Route::apiResource('admin/brands', BrandController::class);
-});
+        Route::get('categories/active', [CategoryController::class, 'activeCategories']);
+        Route::apiResource('categories', CategoryController::class);
+
+        Route::get('subcategories/active', [SubCategoryController::class, 'activeSubCategories']);
+        Route::apiResource('subcategories', SubCategoryController::class);
+
+    });

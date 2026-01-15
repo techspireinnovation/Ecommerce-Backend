@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\SeoDetail;
 use App\Repositories\Interfaces\BrandRepositoryInterface;
 use App\Services\ImageService;
+use App\Services\SlugService;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -13,10 +14,12 @@ use Illuminate\Support\Str;
 class BrandRepository implements BrandRepositoryInterface
 {
     protected ImageService $imageService;
+    protected SlugService $slugService;
 
-    public function __construct(ImageService $imageService)
+    public function __construct(ImageService $imageService, SlugService $slugService)
     {
         $this->imageService = $imageService;
+        $this->slugService = $slugService;
     }
 
     public function all()
@@ -33,18 +36,13 @@ class BrandRepository implements BrandRepositoryInterface
     {
         return DB::transaction(function () use ($data) {
 
-            // Brand image
             if (!empty($data['image'])) {
                 $data['image'] = $this->imageService->store($data['image'], 'brands');
             }
 
-            // Slug
-            $data['slug'] = Str::slug($data['name']);
+            $data['slug'] = $this->slugService->createUniqueSlug($data['name'], Brand::class);
 
-            // Create brand
             $brand = Brand::create(Arr::only($data, ['name', 'slug', 'image', 'status']));
-
-            // SEO
             $seoData = Arr::only($data, ['seo_title', 'seo_description', 'seo_keywords', 'seo_image']);
             if (!empty($seoData['seo_image'])) {
                 $seoData['seo_image'] = $this->imageService->store($seoData['seo_image'], 'brands');
@@ -70,7 +68,11 @@ class BrandRepository implements BrandRepositoryInterface
             }
 
             // Slug
-            $data['slug'] = Str::slug($data['name']);
+            if (isset($data['name']) && $data['name'] !== $brand->name) {
+                $data['slug'] = $this->slugService->createUniqueSlug($data['name'], Brand::class);
+            } else {
+                $data['slug'] = $brand->slug; // keep existing slug if name unchanged
+            }
 
             // Update brand
             $brand->update(Arr::only($data, ['name', 'slug', 'image', 'status']));
@@ -98,6 +100,16 @@ class BrandRepository implements BrandRepositoryInterface
         $brand = Brand::findOrFail($id);
         $this->imageService->delete($brand->image);
         $this->imageService->delete($brand->seo?->seo_image);
-        $brand->delete();
+        $brand->delete($id);
     }
+    public function activeList()
+    {
+        return Brand::query()
+            ->where('status', 0)
+            ->whereNull('deleted_at')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+    }
+
 }

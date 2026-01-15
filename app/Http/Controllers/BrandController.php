@@ -17,7 +17,6 @@ class BrandController extends Controller
         $this->brandRepository = $brandRepository;
     }
 
-    // GET /api/brands
     public function index(): JsonResponse
     {
         $brands = $this->brandRepository->all();
@@ -27,7 +26,6 @@ class BrandController extends Controller
         ]);
     }
 
-    // GET /api/brands/{id}
     public function show(int $id): JsonResponse
     {
         $brand = $this->brandRepository->find($id);
@@ -38,10 +36,10 @@ class BrandController extends Controller
         ]);
     }
 
-    // POST /api/brands
     public function store(StoreRequest $request): JsonResponse
     {
-        $brand = $this->brandRepository->store($request->validated());
+        //$brand = $this->brandRepository->store($request->validated());
+        $this->brandRepository->store($request->validated());
 
         return response()->json([
             'success' => true,
@@ -50,19 +48,16 @@ class BrandController extends Controller
         ]);
     }
 
-    // PUT/PATCH /api/brands/{id}
     public function update(UpdateRequest $request, int $id): JsonResponse
     {
-        $brand = $this->brandRepository->update($id, $request->validated());
+        $this->brandRepository->update($id, $request->validated());
 
         return response()->json([
             'success' => true,
             'message' => 'Brand updated successfully',
-            //'data' => new BrandResource($brand),
         ]);
     }
 
-    // DELETE /api/brands/{id}
     public function destroy(int $id): JsonResponse
     {
         $this->brandRepository->delete($id);
@@ -70,6 +65,16 @@ class BrandController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Brand deleted successfully',
+        ]);
+    }
+
+    public function activeBrands()
+    {
+        $brands = $this->brandRepository->activeList();
+        return response()->json([
+            'success' => true,
+            'data' => $brands,
+
         ]);
     }
 }
