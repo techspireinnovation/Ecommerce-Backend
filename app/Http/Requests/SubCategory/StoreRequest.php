@@ -54,7 +54,7 @@ class StoreRequest extends FormRequest
             'seo_keyword.*.string' => 'Each SEO keyword must be a string.',
         ];
     }
-    protected function faildValidation(Validator $validator)
+    protected function failedValidation(Validator $validator)
     {
         $errors = $validator->errors()->toArray();
         $firstErrorMessage = reset($errors)[0] ?? 'Validation error';

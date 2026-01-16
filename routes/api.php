@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\SubCategoryController;
 use App\Http\Middleware\RefreshTokensMiddleware;
@@ -35,18 +36,21 @@ Route::middleware([RefreshTokensMiddleware::class])->group(function () {
 | Protected (Admin Dashboard)
 |--------------------------------------------------------------------------
 */
-    Route::middleware([RefreshTokensMiddleware::class])->prefix('admin')->group(function () {
-        Route::post('site-settings', [SiteSettingController::class, 'storeOrUpdate']);
-        Route::get('site-settings', [SiteSettingController::class, 'show']);
+Route::middleware([RefreshTokensMiddleware::class])->prefix('admin')->group(function () {
+    Route::post('site-settings', [SiteSettingController::class, 'storeOrUpdate']);
+    Route::get('site-settings', [SiteSettingController::class, 'show']);
 
-        Route::get('users', [AuthController::class, 'me']);
-        Route::get('brands/active', [BrandController::class, 'activeBrands']);
-        Route::apiResource('brands', BrandController::class);
+    Route::get('users', [AuthController::class, 'me']);
+    Route::get('brands/active', [BrandController::class, 'activeBrands']);
+    Route::apiResource('brands', BrandController::class);
 
-        Route::get('categories/active', [CategoryController::class, 'activeCategories']);
-        Route::apiResource('categories', CategoryController::class);
+    Route::get('categories/active', [CategoryController::class, 'activeCategories']);
+    Route::apiResource('categories', CategoryController::class);
 
-        Route::get('subcategories/active', [SubCategoryController::class, 'activeSubCategories']);
-        Route::apiResource('subcategories', SubCategoryController::class);
+    Route::get('subcategories/active', [SubCategoryController::class, 'activeSubCategories']);
+    Route::apiResource('subcategories', SubCategoryController::class);
 
-    });
+    Route::get('products/active', [ProductController::class, 'activeProducts']);
+    Route::apiResource('products', ProductController::class);
+
+});
