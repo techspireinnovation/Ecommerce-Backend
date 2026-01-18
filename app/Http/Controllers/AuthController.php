@@ -111,7 +111,8 @@ class AuthController extends Controller
                 return response()->json(['error' => 'Invalid credentials'], 401);
             }
 
-            $user = User::where('email', $request->email)->first();
+            $user = User::query()
+                ->where('email', $request->email)->first();
             $user->last_login_at = now();
             $user->save();
 
@@ -123,7 +124,8 @@ class AuthController extends Controller
             ]);
 
             // Delete old refresh tokens
-            $deleted = RefreshToken::where('user_id', $user->id)->delete();
+            $deleted = RefreshToken::query()
+                ->where('user_id', $user->id)->delete();
 
             Log::info('Old refresh tokens deleted', [
                 'user_id' => $user->id,
@@ -170,7 +172,8 @@ class AuthController extends Controller
 
         $tokenHash = hash('sha256', $request->refresh_token);
 
-        $refreshToken = RefreshToken::where('token_hash', $tokenHash)
+        $refreshToken = RefreshToken::query()
+            ->where('token_hash', $tokenHash)
             ->where('expires_at', '>', Carbon::now()->toDateTimeString())
             ->first();
 
@@ -178,7 +181,8 @@ class AuthController extends Controller
             return response()->json(['error' => 'Invalid or expired refresh token'], 401);
         }
 
-        $user = User::find($refreshToken->user_id);
+        $user = User::query()
+            ->find($refreshToken->user_id);
 
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
@@ -224,7 +228,8 @@ class AuthController extends Controller
                     return response()->json(['error' => 'Invalid token payload'], 401);
                 }
 
-                $user = User::find($userId);
+                $user = User::query()
+                    ->find($userId);
                 if (!$user) {
                     return response()->json(['error' => 'User not found'], 404);
                 }
@@ -236,7 +241,8 @@ class AuthController extends Controller
                 // Already expired, ignore
             }
 
-            RefreshToken::where('user_id', $user->id)->delete();
+            RefreshToken::query()
+                ->where('user_id', $user->id)->delete();
 
             return response()->json(['message' => 'Successfully logged out']);
         } catch (JWTException $e) {

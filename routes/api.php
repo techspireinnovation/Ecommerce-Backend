@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DealController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\SubCategoryController;
@@ -52,5 +54,9 @@ Route::middleware([RefreshTokensMiddleware::class])->prefix('admin')->group(func
 
     Route::get('products/active', [ProductController::class, 'activeProducts']);
     Route::apiResource('products', ProductController::class);
+
+    Route::apiResource('banners', BannerController::class);
+    Route::apiResource('deals', DealController::class);
+
 
 });

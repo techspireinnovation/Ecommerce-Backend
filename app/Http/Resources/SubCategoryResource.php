@@ -13,7 +13,7 @@ class SubCategoryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            //'category_id' => $this->category_id,
+            'category_id' => $this->category_id,
             'category_name' => $this->category?->name,
             'image_url' => $this->image ? asset('storage/' . $this->image) : null,
             'status' => $this->status ? 'inactive' : 'active',

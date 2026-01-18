@@ -92,7 +92,33 @@ class UpdateRequest extends FormRequest
             'variants.*.storages.*.low_stock_threshold' => 'required|integer|min:0',
         ];
     }
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if (!$this->has('policies')) {
+                return;
+            }
 
+            $types = collect($this->input('policies'))
+                ->pluck('type')
+                ->filter();
+
+            $duplicates = $types->duplicates();
+
+            foreach ($duplicates as $type) {
+                $label = match ((int) $type) {
+                    1 => 'Warranty',
+                    2 => 'Shipping',
+                    3 => 'Return',
+                };
+
+                $validator->errors()->add(
+                    'policies',
+                    "Only one {$label} policy is allowed per product."
+                );
+            }
+        });
+    }
     public function messages()
     {
         return [

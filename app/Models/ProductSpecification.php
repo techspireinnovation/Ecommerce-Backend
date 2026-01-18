@@ -15,7 +15,6 @@ class ProductSpecification extends Model
         'product_id',
         'title',
         'specification_items',
-        'sort_order',
     ];
 
     protected $casts = [
@@ -27,6 +26,6 @@ class ProductSpecification extends Model
     {
         return $this->belongsTo(Product::class);
     }
-   
+
 
 }

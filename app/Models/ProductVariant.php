@@ -15,7 +15,6 @@ class ProductVariant extends Model
         'product_id',
         'color',
         'images',
-        'sort_order',
     ];
 
     protected $casts = [

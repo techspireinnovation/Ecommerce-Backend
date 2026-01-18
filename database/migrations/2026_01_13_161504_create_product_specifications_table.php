@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('title', 100);
             $table->json('specification_items')
             ->comment('Array of {key, value, order}');
-            $table->integer('sort_order')->default(0);
             $table->timestamps();
             $table->softDeletes();
             $table->index('product_id');

@@ -113,7 +113,16 @@ class ProductRepository implements ProductRepositoryInterface
             $this->handleSpecifications($product, $data['specifications'] ?? []);
 
             /* ---------- Variants ---------- */
-            $product->variants()->delete();
+            // $product->variants()->delete();
+            // $this->handleVariants($product, $data['variants']);
+            $incomingVariantIds = collect($data['variants'])->pluck('id')->filter()->all();
+            $variantsToDelete = $product->variants()->whereNotIn('id', $incomingVariantIds)->get();
+
+            foreach ($variantsToDelete as $variant) {
+                $variant->delete(); // this will automatically soft-delete related storages via ProductVariant model
+            }
+
+            // Handle remaining and new variants
             $this->handleVariants($product, $data['variants']);
 
             return $product->load(['seo', 'specifications', 'variants.storages']);

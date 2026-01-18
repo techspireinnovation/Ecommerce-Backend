@@ -10,18 +10,17 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('product_variants', function (Blueprint $table) {
+        Schema::create('deal_products', function (Blueprint $table) {
             $table->increments('id');
+            $table->unsignedInteger('deal_id');
+            $table->foreign('deal_id')->references('id')->on('deals')->cascadeOnDelete();
             $table->unsignedInteger('product_id');
-            $table->string('color', 100);
-            $table->json('images');
+            $table->foreign('product_id')->references('id')->on('products')->cascadeOnDelete();
+
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index('product_id');
-            $table->foreign('product_id')->references('id')->on('products')->cascadeOnDelete();
         });
-
     }
 
     /**
@@ -29,10 +28,10 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('product_variants', function (Blueprint $table) {
+        Schema::table('deal_products', function (Blueprint $table) {
+            $table->dropForeign(['deal_id']);
             $table->dropForeign(['product_id']);
-            $table->dropIndex(['product_id']);
         });
-        Schema::dropIfExists('product_variants');
+        Schema::dropIfExists('deal_products');
     }
 };

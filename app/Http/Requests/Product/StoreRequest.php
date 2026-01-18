@@ -18,9 +18,7 @@ class StoreRequest extends FormRequest
     {
         return [
 
-            /* ======================
-             | Product
-             ====================== */
+            // Product
             'name' => [
                 'required',
                 'string',
@@ -43,9 +41,7 @@ class StoreRequest extends FormRequest
             'discount_percentage' => 'nullable|integer|min:0|max:100',
             'status' => 'sometimes|in:0,1,3,4',
 
-            /* ======================
-             | Tags / Highlights / Policies
-             ====================== */
+            // Tags / Highlights / Policies
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:50',
 
@@ -58,40 +54,58 @@ class StoreRequest extends FormRequest
             'policies.*.content' => 'required|string',
             'policies.*.type' => 'required|in:1,2,3',
 
-            /* ======================
-            | SEO
-             ====================== */
+            //SEO
             'seo_title' => 'required|string|max:255',
             'seo_description' => 'required|string',
             'seo_keywords' => 'required|array|min:1',
             'seo_keywords.*' => 'string|max:50',
             'seo_image' => 'required|file|mimes:jpg,jpeg,png,svg,webp',
 
-            /* ======================
-             | Specifications
-             ====================== */
+            // Specifications
             'specifications' => 'required|array',
             'specifications.*.title' => 'required|string|max:100',
             'specifications.*.items' => 'required|array|min:1',
             'specifications.*.items.*.key' => 'required|string|max:100',
             'specifications.*.items.*.value' => 'required|string|max:255',
 
-            /* ======================
-             | Variants
-             ====================== */
+            // Variants
             'variants' => 'required|array|min:1',
             'variants.*.color' => 'required|string|max:100',
             'variants.*.images' => 'required|array|min:1',
             'variants.*.images.*' => 'required|file|mimes:jpg,jpeg,png,svg,webp',
 
-            /* ======================
-             | Variant Storages
-             ====================== */
+            // Variant Storages
             'variants.*.storages' => 'required|array|min:1',
             'variants.*.storages.*.storage' => 'required|string|max:100',
             'variants.*.storages.*.quantity' => 'required|integer|min:0',
             'variants.*.storages.*.low_stock_threshold' => 'required|integer|min:0',
         ];
+    }
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+
+            $policies = $this->input('policies', []);
+
+            $typeLabels = [
+                1 => 'Warranty',
+                2 => 'Shipping',
+                3 => 'Return',
+            ];
+
+            $typeCounts = collect($policies)
+                ->pluck('type')
+                ->countBy();
+
+            foreach ($typeLabels as $type => $label) {
+                if (($typeCounts[$type] ?? 0) > 1) {
+                    $validator->errors()->add(
+                        'policies',
+                        "Only one {$label} policy is allowed per product."
+                    );
+                }
+            }
+        });
     }
 
     public function messages()

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "66ec6f9b72ee1b5adf7dc87df5244168",
+    "content-hash": "eff9bdf14b48c51f45b63d093ab16ff7",
     "packages": [
         {
             "name": "brick/math",
@@ -3657,6 +3657,51 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.2"
             },
             "time": "2025-12-14T04:43:48+00:00"
+        },
+        {
+            "name": "sagautam5/local-states-nepal",
+            "version": "v2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sagautam5/local-states-nepal.git",
+                "reference": "484cf4f19bc51ea5276ae813895d0957a4e9ee49"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sagautam5/local-states-nepal/zipball/484cf4f19bc51ea5276ae813895d0957a4e9ee49",
+                "reference": "484cf4f19bc51ea5276ae813895d0957a4e9ee49",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "pestphp/pest": "^3.7",
+                "phpstan/phpstan": "^1.10"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Sagautam5\\LocalStateNepal\\": "src",
+                    "Sagautam5\\LocalStateNepal\\Test\\": "tests"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Sagar Gautam",
+                    "email": "sagautam5@gmail.com"
+                }
+            ],
+            "description": "PHP Package for data set of local states of Nepal",
+            "support": {
+                "issues": "https://github.com/sagautam5/local-states-nepal/issues",
+                "source": "https://github.com/sagautam5/local-states-nepal/tree/v2.0.2"
+            },
+            "time": "2025-10-01T13:48:40+00:00"
         },
         {
             "name": "stella-maris/clock",

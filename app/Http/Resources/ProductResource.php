@@ -16,21 +16,20 @@ class ProductResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-
+            'brand_id' => $this->brand_id,
             'brand_name' => $this->brand?->name,
+            'subcategory_id' => $this->subcategory_id,
             'subcategory_name' => $this->subcategory?->name,
-
             'summary' => $this->summary,
             'overview' => $this->overview,
-
             'price' => $this->price,
             'discount_percentage' => $this->discount_percentage,
 
             'status' => match ($this->status) {
                 0 => 'active',
                 1 => 'inactive',
-                3 => 'draft',
-                4 => 'archived',
+                3 => 'low stock',
+                4 => 'sold out',
                 default => 'unknown',
             },
 
@@ -59,8 +58,6 @@ class ProductResource extends JsonResource
                 return [
                     'id' => $variant->id,
                     'color' => $variant->color,
-                    'sort_order' => $variant->sort_order,
-
                     'images' => collect($variant->images)->map(
                         fn($img) => asset('storage/' . $img)
                     )->toArray(),
