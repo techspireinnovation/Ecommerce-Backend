@@ -54,12 +54,6 @@ class StoreRequest extends FormRequest
             'policies.*.content' => 'required|string',
             'policies.*.type' => 'required|in:1,2,3',
 
-            //SEO
-            'seo_title' => 'required|string|max:255',
-            'seo_description' => 'required|string',
-            'seo_keywords' => 'required|array|min:1',
-            'seo_keywords.*' => 'string|max:50',
-            'seo_image' => 'required|file|mimes:jpg,jpeg,png,svg,webp',
 
             // Specifications
             'specifications' => 'required|array',
@@ -131,11 +125,6 @@ class StoreRequest extends FormRequest
             'policies.*.title.required' => 'Policy title is required.',
             'policies.*.content.required' => 'Policy content is required.',
             'policies.*.type.required' => 'Policy type is required.',
-
-            'seo_title.required' => 'SEO title is required.',
-            'seo_description.required' => 'SEO description is required.',
-            'seo_keywords.required' => 'At least one SEO keyword is required.',
-            'seo_keywords.array' => 'SEO keywords must be an array.',
 
             'specifications.*.title.required' => 'Specification title is required.',
             'specifications.*.items.required' => 'Specification items are required.',

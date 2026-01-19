@@ -11,6 +11,8 @@ class ProductResource extends JsonResource
         if (!$this->resource) {
             return [];
         }
+        $category = $this->subcategory?->category;
+
 
         return [
             'id' => $this->id,
@@ -18,6 +20,8 @@ class ProductResource extends JsonResource
             'slug' => $this->slug,
             'brand_id' => $this->brand_id,
             'brand_name' => $this->brand?->name,
+            'category_id' => $category?->id,
+            'category_name' => $category?->name,
             'subcategory_id' => $this->subcategory_id,
             'subcategory_name' => $this->subcategory?->name,
             'summary' => $this->summary,
@@ -39,21 +43,15 @@ class ProductResource extends JsonResource
             'seo_keywords' => $this->seo?->seo_keywords ?? [],
             'seo_image_url' => $this->seo?->seo_image ? asset('storage/' . $this->seo?->seo_image) : null,
 
-            /* ======================
-             | Tags / Highlights / Policies
-             ====================== */
+
             'tags' => $this->tags ?? [],
             'highlights' => $this->highlights ?? [],
             'policies' => $this->policies ?? [],
 
-            /* ======================
-             | Specifications
-             ====================== */
+
             'specifications' => $this->specifications ?? [],
 
-            /* ======================
-             | Variants
-             ====================== */
+
             'variants' => $this->variants->map(function ($variant) {
                 return [
                     'id' => $variant->id,
@@ -73,6 +71,7 @@ class ProductResource extends JsonResource
                     })->toArray(),
                 ];
             })->toArray(),
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }
 }

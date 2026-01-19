@@ -22,6 +22,7 @@ class BrandResource extends JsonResource
             'seo_description' => $this->seo?->seo_description,
             'seo_keywords' => $this->seo?->seo_keywords ?? [],
             'seo_image_url' => $this->seo?->seo_image ? asset('storage/' . $this->seo->seo_image) : null,
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }
 }

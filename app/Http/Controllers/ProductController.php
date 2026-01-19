@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Product\StoreRequest;
+use App\Http\Requests\Product\StoreAndUpdateSeoRequest;
 use App\Http\Requests\Product\UpdateRequest;
 use App\Http\Resources\ProductResource;
+use App\Http\Resources\ProductSeoResource;
 use App\Repositories\Interfaces\ProductRepositoryInterface;
 
 class ProductController extends Controller
@@ -26,6 +28,7 @@ class ProductController extends Controller
         ]);
     }
 
+
     public function show(int $id)
     {
         $product = $this->productRepository->find($id);
@@ -35,24 +38,55 @@ class ProductController extends Controller
             'data' => new ProductResource($product),
         ]);
     }
+    public function showForSeo(int $id)
+    {
+        $product = $this->productRepository->find($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => new ProductSeoResource($product),
+        ]);
+    }
+
 
     public function store(StoreRequest $request)
     {
-        $this->productRepository->store($request->validated());
+        $product = $this->productRepository->store($request->validated());
 
         return response()->json([
             'success' => true,
             'message' => 'Product created successfully',
+            'id' => $product->id,
         ]);
     }
+    public function storeSeo(StoreAndUpdateSeoRequest $request, $id)
+    {
+        $data = $request->validated();
+        $this->productRepository->storeSeo($id, $data);
 
+        return response()->json([
+            'success' => true,
+            'message' => 'SEO details saved successfully.',
+        ]);
+    }
+    public function updateSeo(StoreAndUpdateSeoRequest $request, $id)
+    {
+        $data = $request->validated();
+        $this->productRepository->storeSeo($id, $data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'SEO details updated successfully.',
+        ]);
+    }
     public function update(UpdateRequest $request, int $id)
     {
-        $this->productRepository->update($id, $request->validated());
+        $product = $this->productRepository->update($id, $request->validated());
 
         return response()->json([
             'success' => true,
             'message' => 'Product updated successfully',
+            'id' => $product->id,
         ]);
     }
 

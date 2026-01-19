@@ -64,8 +64,6 @@ class ProductRepository implements ProductRepositoryInterface
                 'tags' => $data['tags'] ?? [],
             ]);
 
-            /* ---------- SEO ---------- */
-            $this->handleSeo($product, $data);
 
             /* ---------- Specifications ---------- */
             $this->handleSpecifications($product, $data['specifications'] ?? []);
@@ -105,16 +103,11 @@ class ProductRepository implements ProductRepositoryInterface
                 'tags' => $data['tags'] ?? [],
             ]);
 
-            /* ---------- SEO ---------- */
-            $this->handleSeo($product, $data);
-
             /* ---------- Specifications ---------- */
             $product->specifications()->delete();
             $this->handleSpecifications($product, $data['specifications'] ?? []);
 
-            /* ---------- Variants ---------- */
-            // $product->variants()->delete();
-            // $this->handleVariants($product, $data['variants']);
+
             $incomingVariantIds = collect($data['variants'])->pluck('id')->filter()->all();
             $variantsToDelete = $product->variants()->whereNotIn('id', $incomingVariantIds)->get();
 
@@ -122,7 +115,6 @@ class ProductRepository implements ProductRepositoryInterface
                 $variant->delete(); // this will automatically soft-delete related storages via ProductVariant model
             }
 
-            // Handle remaining and new variants
             $this->handleVariants($product, $data['variants']);
 
             return $product->load(['seo', 'specifications', 'variants.storages']);
@@ -146,43 +138,39 @@ class ProductRepository implements ProductRepositoryInterface
             ->get();
     }
 
-    /* ======================
-       | Helper Methods
-       ====================== */
 
-    protected function handleSeo(Product $product, array $data)
+    public function storeSeo(int $productId, array $seoData)
     {
-        $seoData = Arr::only($data, [
+        $product = Product::findOrFail($productId);
+
+        $seoData = Arr::only($seoData, [
             'seo_title',
             'seo_description',
             'seo_keywords',
             'seo_image'
         ]);
 
-        if (
-            !empty($seoData['seo_title']) || !empty($seoData['seo_description'])
-            || !empty($seoData['seo_keywords']) || !empty($seoData['seo_image'])
-        ) {
-
-            if (!empty($seoData['seo_image'])) {
-                $seoData['seo_image'] = $product->seo
-                    ? $this->imageService->replace($product->seo->seo_image, $seoData['seo_image'], 'products')
-                    : $this->imageService->store($seoData['seo_image'], 'products');
-            }
-
-            $seoData['seo_title'] = $seoData['seo_title'] ?? '';
-            $seoData['seo_description'] = $seoData['seo_description'] ?? '';
-            $seoData['seo_keywords'] = $seoData['seo_keywords'] ?? [];
-
-            if ($product->seo) {
-                $product->seo->update($seoData);
-            } else {
-                $seoData['reference_id'] = $product->id;
-                $seoData['type'] = 4;
-                SeoDetail::create($seoData);
-            }
+        if (!empty($seoData['seo_image'])) {
+            $seoData['seo_image'] = $product->seo
+                ? $this->imageService->replace($product->seo->seo_image, $seoData['seo_image'], 'products')
+                : $this->imageService->store($seoData['seo_image'], 'products');
         }
+
+        $seoData['seo_title'] = $seoData['seo_title'] ?? '';
+        $seoData['seo_description'] = $seoData['seo_description'] ?? '';
+        $seoData['seo_keywords'] = $seoData['seo_keywords'] ?? [];
+
+        if ($product->seo) {
+            $product->seo->update($seoData);
+        } else {
+            $seoData['reference_id'] = $product->id;
+            $seoData['type'] = 4;
+            SeoDetail::create($seoData);
+        }
+
+        return $product->load('seo');
     }
+
 
     protected function handleSpecifications(Product $product, array $specifications)
     {

@@ -4,10 +4,12 @@ namespace App\Providers;
 
 use App\Repositories\BannerRepository;
 use App\Repositories\BrandRepository;
+use App\Repositories\CartRepository;
 use App\Repositories\CategoryRepository;
 use App\Repositories\DealRepository;
 use App\Repositories\Interfaces\BannerRepositoryInterface;
 use App\Repositories\Interfaces\BrandRepositoryInterface;
+use App\Repositories\Interfaces\CartRepositoryInterface;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\DealRepositoryInterface;
 use App\Repositories\Interfaces\ProductRepositoryInterface;
@@ -32,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
         $this->app->bind(BannerRepositoryInterface::class, BannerRepository::class);
         $this->app->bind(DealRepositoryInterface::class, DealRepository::class);
+        $this->app->bind(CartRepositoryInterface::class, CartRepository::class);
 
     }
 

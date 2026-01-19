@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DealController;
 use App\Http\Controllers\ProductController;
@@ -38,7 +39,7 @@ Route::middleware([RefreshTokensMiddleware::class])->group(function () {
 | Protected (Admin Dashboard)
 |--------------------------------------------------------------------------
 */
-Route::middleware([RefreshTokensMiddleware::class])->prefix('admin')->group(function () {
+Route::middleware([RefreshTokensMiddleware::class, 'role:admin'])->prefix('admin')->group(function () {
     Route::post('site-settings', [SiteSettingController::class, 'storeOrUpdate']);
     Route::get('site-settings', [SiteSettingController::class, 'show']);
 
@@ -54,9 +55,16 @@ Route::middleware([RefreshTokensMiddleware::class])->prefix('admin')->group(func
 
     Route::get('products/active', [ProductController::class, 'activeProducts']);
     Route::apiResource('products', ProductController::class);
+    Route::get('products/{id}/seo', [ProductController::class, 'showForSeo']);
+    Route::post('products/{id}/seo', [ProductController::class, 'storeSeo']);
+    Route::put('products/{id}/seo', [ProductController::class, 'updateSeo']);  // update
 
     Route::apiResource('banners', BannerController::class);
     Route::apiResource('deals', DealController::class);
 
 
+});
+
+Route::middleware([RefreshTokensMiddleware::class, 'role:user'])->prefix('user')->group(function () {
+    Route::apiResource('carts', CartController::class);
 });

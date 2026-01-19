@@ -25,6 +25,7 @@ class BannerResource extends JsonResource
             },
             'image_url' => $this->image ? asset('storage/' . $this->image) : null,
             'status' => $this->status ? 'inactive' : 'active',
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }
 }
