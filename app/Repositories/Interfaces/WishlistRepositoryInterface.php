@@ -2,7 +2,7 @@
 
 namespace App\Repositories\Interfaces;
 
-interface CartRepositoryInterface
+interface WishlistRepositoryInterface
 {
     public function all();
     public function find(int $id);

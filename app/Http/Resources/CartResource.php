@@ -35,7 +35,13 @@ class CartResource extends JsonResource
             ] : null,
 
             'quantity' => $this->quantity,
-            'status' => $this->status ? 'converted_to_order' : 'active',
+            'status' => match ($this->status) {
+                0 => 'active',
+                1 => 'converted_to_order',
+                2 => 'moved_to_wishlist',
+                default => 'unknown',
+            },
+
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];

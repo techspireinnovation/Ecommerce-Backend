@@ -22,15 +22,12 @@ class RefreshTokensMiddleware
         }
 
         try {
-            // Try normal authentication
             $user = JWTAuth::parseToken()->authenticate();
-            // Set user for Laravel guard
             auth()->setUser($user);
 
             return $next($request);
 
         } catch (TokenExpiredException $e) {
-            // Decode token without authenticating
             $payload = JWTAuth::getJWTProvider()->decode($token);
             $userId = $payload['sub'] ?? null;
 
@@ -38,13 +35,13 @@ class RefreshTokensMiddleware
                 return response()->json(['success' => false, 'message' => 'Invalid token payload'], 401);
             }
 
-            $user = User::find($userId);
+            $user = User::query()->find($userId);
             if (!$user) {
                 return response()->json(['success' => false, 'message' => 'User not found'], 404);
             }
 
             // Check for a valid refresh token
-            $refreshToken = RefreshToken::where('user_id', $user->id)
+            $refreshToken = RefreshToken::query()->where('user_id', $user->id)
                 ->where('expires_at', '>', now())
                 ->latest()
                 ->first();
@@ -60,7 +57,7 @@ class RefreshTokensMiddleware
             $tokenCreatedAt = Carbon::parse($refreshToken->created_at);
             if ($tokenCreatedAt->diffInMinutes(now()) < config('jwt.ttl')) {
                 // Token still fresh enough, pass current request
-                auth()->setUser($user); // ⚡ ensure user is set
+                auth()->setUser($user); 
                 return $next($request)
                     ->header('Authorization', 'Bearer ' . (string) $token)
                     ->header('X-Refresh-Token', $refreshToken->plain_token ?? 'existing token');
@@ -79,7 +76,6 @@ class RefreshTokensMiddleware
                 'plain_token' => $newRefreshToken, // optional if you want to return it
             ]);
 
-            // ⚡ Set the user for this request so role middleware works
             auth()->setUser($user);
 
             $response = $next($request);

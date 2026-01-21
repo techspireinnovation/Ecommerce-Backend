@@ -46,13 +46,13 @@ class CartController extends Controller
         ]);
     }
 
-    public function update(UpdateRequest $request, int $id)
+    public function toggleMoveToWish(int $id)
     {
-        $this->cartRepository->update($id, $request->validated());
+        $this->cartRepository->toggle($id);
 
         return response()->json([
             'success' => true,
-            'message' => 'Cart updated successfully',
+            'message' => 'Cart moved to wishlist successfully.',
         ]);
     }
 

@@ -15,10 +15,14 @@ use App\Repositories\Interfaces\DealRepositoryInterface;
 use App\Repositories\Interfaces\ProductRepositoryInterface;
 use App\Repositories\Interfaces\SiteSettingRepositoryInterface;
 use App\Repositories\Interfaces\SubCategoryRepositoryInterface;
+use App\Repositories\Interfaces\WishlistRepositoryInterface;
 use App\Repositories\ProductRepository;
 use App\Repositories\SiteSettingRepository;
 use App\Repositories\SubCategoryRepository;
+use App\Repositories\WishlistRepository;
 use Illuminate\Support\ServiceProvider;
+use Biponix\SecureOtp\Services\SecureOtpService;
+use Biponix\SecureOtp\Types\EmailType;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(BannerRepositoryInterface::class, BannerRepository::class);
         $this->app->bind(DealRepositoryInterface::class, DealRepository::class);
         $this->app->bind(CartRepositoryInterface::class, CartRepository::class);
+        $this->app->bind(WishlistRepositoryInterface::class, WishlistRepository::class);
 
     }
 
@@ -43,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        SecureOtpService::addType('email', new EmailType());
+
     }
 }

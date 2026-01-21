@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Address;
+use Biponix\SecureOtp\Services\SecureOtpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -13,6 +14,8 @@ use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+
 
 class AuthController extends Controller
 {
@@ -113,6 +116,11 @@ class AuthController extends Controller
 
             $user = User::query()
                 ->where('email', $request->email)->first();
+            if ($user->role === 'user' && !$user->email_verified_at) {
+                return response()->json([
+                    'error' => 'Email not verified. Please verify your email first.'
+                ], 403);
+            }
             $user->last_login_at = now();
             $user->save();
 
@@ -259,4 +267,154 @@ class AuthController extends Controller
     {
         return response()->json(auth()->user());
     }
+
+    public function sendOtp(Request $request, SecureOtpService $otp)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email'
+        ]);
+
+        try {
+            $otp->send($request->email, 'email');
+
+            return response()->json([
+                'message' => 'OTP sent to your email.'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Too many OTP requests. Please try again later.'], 500);
+        }
+    }
+
+    public function verifyOtp(Request $request, SecureOtpService $otp)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'code' => 'required|string',
+        ]);
+
+        $verified = $otp->verify($request->email, $request->code, 'email');
+
+        if ($verified) {
+            $user = User::query()->where('email', $request->email)->first();
+            if ($user && !$user->email_verified_at) {
+                $user->email_verified_at = now();
+                $user->save();
+            }
+
+            return response()->json(['message' => 'OTP verified successfully.']);
+        }
+
+        return response()->json(['error' => 'Invalid or expired OTP.'], 422);
+    }
+    public function sendForgotPasswordOtp(Request $request, SecureOtpService $otp)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        try {
+            $otp->send($request->email, 'forgot_password');
+
+            return response()->json([
+                'message' => 'Password reset OTP sent to your email.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Too many OTP requests. Please try again later.'
+            ], 500);
+        }
+    }
+
+
+
+    public function verifyForgotPasswordOtp(Request $request, SecureOtpService $otp)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'code' => 'required|string',
+        ]);
+
+        $verified = $otp->verify(
+            $request->email,
+            $request->code,
+            'forgot_password'
+        );
+
+        if (!$verified) {
+            return response()->json([
+                'error' => 'Invalid or expired OTP.'
+            ], 422);
+        }
+
+        $token = Str::random(64);
+
+        DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->delete();
+
+        DB::table('password_reset_tokens')->insert([
+            'email' => $request->email,
+            'token' => hash('sha256', $token),
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'OTP verified successfully.',
+            'reset_token' => $token
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string|confirmed|min:8',
+        ]);
+
+        $token = $request->bearerToken();
+
+        if (!$token) {
+            return response()->json([
+                'error' => 'Reset token missing.'
+            ], 401);
+        }
+
+        $hashedToken = hash('sha256', $token);
+
+        $record = DB::table('password_reset_tokens')
+            ->where('token', $hashedToken)
+            ->first();
+
+        if (
+            !$record ||
+            Carbon::parse($record->created_at)->addMinutes(10)->isPast()
+        ) {
+            return response()->json([
+                'error' => 'Invalid or expired reset token.'
+            ], 403);
+        }
+
+        $user = User::query()->where('email', $record->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'error' => 'User not found.'
+            ], 404);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->password),
+            'password_changed_at' => now(),
+        ]);
+
+        DB::table('password_reset_tokens')
+            ->where('email', $record->email)
+            ->delete();
+
+        return response()->json([
+            'message' => 'Password reset successful.'
+        ]);
+    }
+
+
 }

@@ -16,7 +16,7 @@ class CartRepository implements CartRepositoryInterface
             'product',
             'productVariantStorage',
             'user'
-        ])->get();
+        ])->where('status', 0)->get();
     }
 
     public function find(int $id)
@@ -25,52 +25,47 @@ class CartRepository implements CartRepositoryInterface
             'product',
             'productVariantStorage',
             'user'
-        ])->findOrFail($id);
+        ])->where('status', 0)->findOrFail($id);
     }
+
+
+
+
 
     public function store(array $data)
     {
         return DB::transaction(function () use ($data) {
-
-            $ids = [];
-
-            foreach ($data['items'] as $item) {
-                $cart = Cart::create([
-                    'user_id' => auth()->id(),
-                    'product_id' => $item['product_id'],
-                    'product_variant_storage_id' => $item['product_variant_storage_id'],
-                    'quantity' => $item['quantity'],
-                    'status' => 0,
-                ]);
-
-                $ids[] = $cart->id;
-            }
+            $cart = Cart::create([
+                'user_id' => auth()->id(),
+                'product_id' => $data['product_id'],
+                'product_variant_storage_id' => $data['product_variant_storage_id'],
+                'quantity' => $data['quantity'],
+                'status' => 0,
+            ]);
 
             return Cart::with(['product', 'productVariantStorage'])
-                ->whereIn('id', $ids)
-                ->get();
+                ->find($cart->id);
         });
     }
 
+    public function toggle(int $id)
+{
+    return DB::transaction(function () use ($id) {
+        $cart = Cart::findOrFail($id);
 
+        $cart->update(['status' => 2]);
+        app(\App\Repositories\WishlistRepository::class)->store([
+            'product_id' => $cart->product_id,
+            'product_variant_storage_id' => $cart->product_variant_storage_id,
+        ]);
+        return $cart->load(['product', 'productVariantStorage', 'user']);
+    });
+}
 
-    public function update(int $id, array $data)
-    {
-        return DB::transaction(function () use ($id, $data) {
-            $cart = Cart::findOrFail($id);
-
-            $cart->update(Arr::only($data, [
-                'quantity',
-                'status'
-            ]));
-
-            return $cart->load(['product', 'productVariantStorage']);
-        });
-    }
 
     public function delete(int $id)
     {
         $cart = Cart::findOrFail($id);
-        $cart->delete();
+        $cart->delete($id);
     }
 }

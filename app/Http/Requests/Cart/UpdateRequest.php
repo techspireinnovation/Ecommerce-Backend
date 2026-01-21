@@ -26,37 +26,30 @@ class UpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => 'sometimes|in:0,1',
+            'status' => 'sometimes|in:0,1,2',
 
-            'items' => 'sometimes|array|min:1',
-
-            'items.*.product_id' => [
-                'required_with:items',
+            'product_id' => [
+                'sometimes',
                 'integer',
                 Rule::exists('products', 'id')
                     ->whereNull('deleted_at')
                     ->whereNotIn('status', [1, 4]),
             ],
 
-            'items.*.product_variant_storage_id' => [
-                'required_with:items',
+            'product_variant_storage_id' => [
+                'sometimes',
                 'integer',
                 Rule::exists('product_variant_storages', 'id')
                     ->whereNull('deleted_at'),
             ],
 
-            'items.*.quantity' => [
-                'required_with:items',
+            'quantity' => [
+                'sometimes',
                 'integer',
                 'min:1',
                 function ($attribute, $value, $fail) {
-                    $index = explode('.', $attribute)[1] ?? null;
-                    if ($index === null) return;
-
-                    $variantId = $this->input("items.$index.product_variant_storage_id");
-                    if (!$variantId) return;
-
-                    if (!$this->stockService->isQuantityAvailableForCart($variantId, $value)) {
+                    $variantId = $this->input('product_variant_storage_id');
+                    if ($variantId && !$this->stockService->isQuantityAvailableForCart($variantId, $value)) {
                         $available = $this->stockService->getAvailableQuantity($variantId);
                         $fail("Requested quantity exceeds available stock ({$available}).");
                     }
@@ -65,51 +58,19 @@ class UpdateRequest extends FormRequest
         ];
     }
 
-    /**
-     * Additional update-specific validation
-     * - Prevent duplicate product + variant in the same request
-     */
-    public function withValidator($validator): void
-    {
-        $validator->after(function ($validator) {
-            if (!$this->items) return;
-
-            $pairs = [];
-
-            foreach ($this->items as $index => $item) {
-                $pairKey = $item['product_id'] . '-' . $item['product_variant_storage_id'];
-
-                if (isset($pairs[$pairKey])) {
-                    $validator->errors()->add(
-                        "items.$index",
-                        'Duplicate product variant detected in cart items.'
-                    );
-                }
-
-                $pairs[$pairKey] = true;
-            }
-        });
-    }
-
     public function messages(): array
     {
         return [
-            'status.in' => 'Status must be either 0 (active) or 1 (converted to order).',
+            'status.in' => 'Status must be either 0 (active), 1 (converted to order), or 2 (moved to wishlist).',
 
-            'items.array' => 'Items must be an array.',
-            'items.min' => 'At least one cart item is required.',
+            'product_id.integer' => 'Product ID must be an integer.',
+            'product_id.exists' => 'Selected product is inactive or unavailable.',
 
-            'items.*.product_id.required_with' => 'Product is required.',
-            'items.*.product_id.integer' => 'Product ID must be an integer.',
-            'items.*.product_id.exists' => 'Selected product is inactive or unavailable.',
+            'product_variant_storage_id.integer' => 'Variant ID must be an integer.',
+            'product_variant_storage_id.exists' => 'Selected variant does not exist.',
 
-            'items.*.product_variant_storage_id.required_with' => 'Product variant is required.',
-            'items.*.product_variant_storage_id.integer' => 'Variant ID must be an integer.',
-            'items.*.product_variant_storage_id.exists' => 'Selected variant does not exist.',
-
-            'items.*.quantity.required_with' => 'Quantity is required.',
-            'items.*.quantity.integer' => 'Quantity must be an integer.',
-            'items.*.quantity.min' => 'Quantity must be at least 1.',
+            'quantity.integer' => 'Quantity must be an integer.',
+            'quantity.min' => 'Quantity must be at least 1.',
         ];
     }
 

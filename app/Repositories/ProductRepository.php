@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Http\Resources\Product\ProductActiveResource;
 use App\Models\Product;
 use App\Models\SeoDetail;
 use App\Models\ProductVariant;
@@ -130,13 +131,20 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function activeList()
     {
-        return Product::query()
+        $products = Product::query()
             ->where('status', 0)
             ->whereNull('deleted_at')
+            ->with([
+                'variants.storages' => fn($q) =>
+                    $q->whereNull('deleted_at')
+            ])
             ->select('id', 'name')
             ->orderBy('name')
             ->get();
+
+        return ProductActiveResource::collection($products);
     }
+
 
 
     public function storeSeo(int $productId, array $seoData)

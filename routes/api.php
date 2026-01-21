@@ -9,6 +9,7 @@ use App\Http\Controllers\DealController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\SubCategoryController;
+use App\Http\Controllers\WishlistController;
 use App\Http\Middleware\RefreshTokensMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -21,7 +22,9 @@ Route::get('/site-settings', [SiteSettingController::class, 'show']);
 
 Route::apiResource('brands', BrandController::class)->only(['index', 'show']);
 Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
-
+Route::apiResource('subcategories', SubCategoryController::class)->only(['index', 'show']);
+Route::get('products/active', [ProductController::class, 'activeProducts']);
+Route::apiResource('products', ProductController::class)->only(['index', 'show']);
 /*
 |--------------------------------------------------------------------------
 | Auth
@@ -30,6 +33,23 @@ Route::apiResource('categories', CategoryController::class)->only(['index', 'sho
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/refresh', [AuthController::class, 'refresh']);
+/*
+|--------------------------------------------------------------------------
+| OTP – Email verification
+|--------------------------------------------------------------------------
+*/
+Route::post('/send-otp', [AuthController::class, 'sendOtp']);
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+
+/*
+|--------------------------------------------------------------------------
+| Forgot password (OTP based)
+|--------------------------------------------------------------------------
+*/
+Route::post('/forgot-password/send-otp', [AuthController::class, 'sendForgotPasswordOtp']);
+Route::post('/forgot-password/verify-otp', [AuthController::class, 'verifyForgotPasswordOtp']);
+Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword']);
+
 Route::middleware([RefreshTokensMiddleware::class])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
@@ -67,4 +87,8 @@ Route::middleware([RefreshTokensMiddleware::class, 'role:admin'])->prefix('admin
 
 Route::middleware([RefreshTokensMiddleware::class, 'role:user'])->prefix('user')->group(function () {
     Route::apiResource('carts', CartController::class);
+    Route::patch('carts/{id}/move-to-wish', [CartController::class, 'toggleMoveToWish']);
+    Route::apiResource('wishlists', WishlistController::class);
+    Route::patch('wishlists/{id}/move-to-cart', [WishlistController::class, 'toggleMoveToCart']);
+
 });

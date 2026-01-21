@@ -14,7 +14,7 @@ return new class extends Migration {
 
             $table->tinyInteger('status')
                   ->default(0)
-                  ->comment('0 = active, 1 = inactive, 2 = moved_to_cart');
+                  ->comment('0 = active, 1 = moved_to_cart');
 
             $table->timestamps();
             $table->softDeletes();
@@ -29,12 +29,12 @@ return new class extends Migration {
             $table->foreign('product_id')
                   ->references('id')
                   ->on('products')
-                  ->restrictOnDelete();
+                  ->cascadeOnDelete();
 
             $table->foreign('product_variant_storage_id')
                   ->references('id')
                   ->on('product_variant_storages')
-                  ->restrictOnDelete();
+                  ->cascadeOnDelete();
         });
     }
 
