@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Category\StoreRequest;
 use App\Http\Requests\Category\UpdateRequest;
 use App\Http\Resources\BrandResource;
+use App\Http\Resources\CategoryResource;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use Illuminate\Auth\Events\Validated;
 
@@ -20,7 +21,7 @@ class CategoryController extends Controller
         $categories = $this->categoryRepository->all();
         return response()->json([
             'success' => true,
-            'data' => BrandResource::collection($categories),
+            'data' => CategoryResource::collection($categories),
         ]);
 
     }
@@ -29,7 +30,7 @@ class CategoryController extends Controller
         $categories = $this->categoryRepository->find($id);
         return response()->json([
             'success' => true,
-            'data' => new BrandResource($categories),
+            'data' => new CategoryResource($categories),
         ]);
     }
 
