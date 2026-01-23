@@ -73,7 +73,7 @@ class ProductResource extends JsonResource
                     })->toArray(),
                 ];
             })->toArray(),
-            'created_at' => $this->created_at,
+            'created_at' => $this->created_at->format('Y-m-d H:i:s')
         ];
     }
 }

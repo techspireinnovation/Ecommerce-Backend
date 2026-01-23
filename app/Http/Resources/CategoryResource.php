@@ -23,7 +23,7 @@ class CategoryResource extends JsonResource
             'seo_keywords' => $this->seo?->seo_keywords ?? [],
             'seo_image_url' => $this->seo?->seo_image ? asset('storage/' . $this->seo?->seo_image) : null,
             'seo_image_file' => $this->seo?->seo_image ?? null,
-            'created_at' => $this->created_at,
+            'created_at' => $this->created_at->format('Y-m-d H:i:s')
 
         ];
     }
