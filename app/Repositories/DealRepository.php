@@ -27,7 +27,7 @@ class DealRepository implements DealRepositoryInterface
             'products.variants.storages',
         ])
         ->whereNull('deleted_at')
-        ->get();
+        ->paginate(20);
     }
 
     public function find(int $id)

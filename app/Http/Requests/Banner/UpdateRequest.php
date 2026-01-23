@@ -3,12 +3,19 @@
 namespace App\Http\Requests\Banner;
 
 use App\Models\Banner;
+use App\Services\UpdateImageHandlerService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class UpdateRequest extends FormRequest
 {
+    private UpdateImageHandlerService $updateImageHandlerService;
+
+    public function __construct(UpdateImageHandlerService $updateImageHandlerService)
+    {
+        $this->updateImageHandlerService = $updateImageHandlerService;
+    }
     public function authorize(): bool
     {
         return true;
@@ -19,7 +26,15 @@ class UpdateRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'type' => 'required|in:1,2,3,4',
-            'image' => 'required|file|mimes:jpg,jpeg,png,webp',
+            'image' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $result = $this->updateImageHandlerService->validateFileOrString($value, 'Banner image');
+                    if (!$result['valid']) {
+                        $fail($result['message']);
+                    }
+                }
+            ],
             'status' => 'sometimes|in:0,1',
         ];
     }
@@ -27,7 +42,7 @@ class UpdateRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $type = $this->input('type');
-            $bannerId = $this->route('banner'); 
+            $bannerId = $this->route('banner');
 
             if ($type) {
                 $typeLabels = [
@@ -60,8 +75,6 @@ class UpdateRequest extends FormRequest
             'title.required' => 'Banner title is required.',
             'type.required' => 'Banner type is required.',
             'type.in' => 'Invalid banner type.',
-            'image.required' => 'Banner image is required.',
-            'image.mimes' => 'Banner image must be jpg, jpeg, png or webp.',
         ];
     }
 

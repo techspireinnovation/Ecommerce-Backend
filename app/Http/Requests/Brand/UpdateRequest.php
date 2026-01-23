@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Brand;
 
+use App\Services\UpdateImageHandlerService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Contracts\Validation\Validator;
@@ -9,6 +10,12 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class UpdateRequest extends FormRequest
 {
+    private UpdateImageHandlerService $updateImageHandlerService;
+
+    public function __construct(UpdateImageHandlerService $updateImageHandlerService)
+    {
+        $this->updateImageHandlerService = $updateImageHandlerService;
+    }
     public function authorize(): bool
     {
         return true;
@@ -26,7 +33,15 @@ class UpdateRequest extends FormRequest
                     ->ignore($brandId)
                     ->whereNull('deleted_at'),
             ],
-            'image' => 'required|file|mimes:jpg,jpeg,png,webp',
+            'image' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $result = $this->updateImageHandlerService->validateFileOrString($value, 'Brand image');
+                    if (!$result['valid']) {
+                        $fail($result['message']);
+                    }
+                }
+            ],
             'status' => 'sometimes|in:0,1',
 
             // SEO fields
@@ -34,7 +49,15 @@ class UpdateRequest extends FormRequest
             'seo_description' => 'required|string',
             'seo_keywords' => 'required|array|min:1',
             'seo_keywords.*' => 'string|max:50',
-            'seo_image' => 'required|file|mimes:jpg,jpeg,png,webp',
+            'seo_image' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $result = $this->updateImageHandlerService->validateFileOrString($value, 'SEO image');
+                    if (!$result['valid']) {
+                        $fail($result['message']);
+                    }
+                }
+            ],
         ];
     }
 
@@ -43,15 +66,11 @@ class UpdateRequest extends FormRequest
         return [
             'name.required' => 'Brand name is required.',
             'name.unique' => 'This brand name already exists.',
-            'image.required' => 'Brand image is required.',
-            'image.mimes' => 'Brand image must be jpg, jpeg, png, or webp.',
             'seo_title.required' => 'SEO title is required.',
             'seo_description.required' => 'SEO description is required.',
             'seo_keywords.required' => 'At least one SEO keyword is required.',
             'seo_keywords.array' => 'SEO keywords must be an array.',
             'seo_keywords.*.string' => 'Each SEO keyword must be a string.',
-            'seo_image.required' => 'SEO image is required.',
-            'seo_image.mimes' => 'SEO image must be jpg, jpeg, png, svg or webp.',
         ];
     }
 

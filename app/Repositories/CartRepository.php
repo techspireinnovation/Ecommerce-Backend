@@ -16,7 +16,7 @@ class CartRepository implements CartRepositoryInterface
             'product',
             'productVariantStorage',
             'user'
-        ])->where('status', 0)->whereNull('deleted_at')->get();
+        ])->where('status', 0)->whereNull('deleted_at')->paginate(20);
     }
 
     public function find(int $id)

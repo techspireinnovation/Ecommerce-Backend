@@ -21,7 +21,7 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
 
     public function all()
     {
-        return SubCategory::with('seo')->whereNull('deleted_at')->get();
+        return SubCategory::with('seo')->whereNull('deleted_at')->paginate(20);
     }
     public function find(int $id)
     {
@@ -53,8 +53,11 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
     {
         return DB::transaction(function () use ($id, $data) {
             $subCategory = SubCategory::findOrFail($id);
-            if (!empty($data['image'])) {
+
+            if (!empty($data['image']) && is_file($data['image'])) {
                 $data['image'] = $this->imageService->replace($subCategory->image, $data['image'], 'subcategories');
+            } else {
+                $data['image'] = $subCategory->image;
             }
             if (isset($data['name']) && $data['name'] != $subCategory->name) {
                 $data['slug'] = $this->slugService->createUniqueSlug($data['name'], SubCategory::class);
@@ -63,8 +66,11 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
             }
             $subCategory->update(Arr::only($data, ['name', 'category_id', 'slug', 'image', 'status']));
             $seoData = Arr::only($data, ['seo_title', 'seo_description', 'seo_keywords', 'seo_image']);
-            if (!empty($seoData['seo_image'])) {
+           
+            if (!empty($seoData['seo_image']) && is_file($seoData['seo_image'])) {
                 $seoData['seo_image'] = $this->imageService->replace($subCategory->seo?->seo_image, $seoData['seo_image'], 'subcategories');
+            } elseif (isset($subCategory->seo->seo_image)) {
+                $seoData['seo_image'] = $subCategory->seo->seo_image;
             }
             if ($subCategory->seo) {
                 $subCategory->seo->update($seoData);

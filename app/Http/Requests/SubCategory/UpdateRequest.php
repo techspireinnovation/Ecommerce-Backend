@@ -1,12 +1,19 @@
 <?php
 namespace App\Http\Requests\SubCategory;
 
+use App\Services\UpdateImageHandlerService;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 class UpdateRequest extends FormRequest
 {
+    private UpdateImageHandlerService $updateImageHandlerService;
+
+    public function __construct(UpdateImageHandlerService $updateImageHandlerService)
+    {
+        $this->updateImageHandlerService = $updateImageHandlerService;
+    }
     public function authorize()
     {
         return true;
@@ -29,7 +36,15 @@ class UpdateRequest extends FormRequest
                 'integer',
                 Rule::exists('categories', 'id')->where('status', 0)->whereNull('deleted_at')
             ],
-            'image' => 'required|file|mimes:japg,jpeg,png,svg,webp',
+            'image' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $result = $this->updateImageHandlerService->validateFileOrString($value, 'Sub Category image');
+                    if (!$result['valid']) {
+                        $fail($result['message']);
+                    }
+                }
+            ],
             'status' => 'sometimes|in:0,1',
 
             //seo details
@@ -37,7 +52,15 @@ class UpdateRequest extends FormRequest
             'seo_description' => 'required|string',
             'seo_keywords' => 'required|array|min:1',
             'seo_keywords.*' => 'string|max:50',
-            'seo_image' => 'required|file|mimes:jpg,jpeg,png,svg,webp',
+            'seo_image' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $result = $this->updateImageHandlerService->validateFileOrString($value, 'SEO image');
+                    if (!$result['valid']) {
+                        $fail($result['message']);
+                    }
+                }
+            ],
 
         ];
     }
@@ -48,15 +71,13 @@ class UpdateRequest extends FormRequest
             'name.unique' => 'This sub category name already exists.',
             'category_id.required' => 'Sub Category category is required.',
             'category_id.exists' => 'Selected category is inactive or does not exist.',
-            'image.required' => 'Sub Category image is required.',
-            'image.mimes' => 'Sub Category image must be jpg, jpeg, png, svg or webp.',
+
             'seo_title.required' => 'SEO title is required.',
             'seo_description.required' => 'SEO description is required.',
             'seo_keywords.required' => 'At least one SEO keyword is required.',
             'seo_keywords.array' => 'SEO keywords must be an array.',
             'seo_keywords.*.string' => 'Each SEO keyword must be a string.',
-            'seo_image.required' => 'SEO image is required.',
-            'seo_image.mimes' => 'SEO image must be jpg, jpeg, png, svg or webp.',
+
         ];
     }
     public function failedValidation(Validator $validator)

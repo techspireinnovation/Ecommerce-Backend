@@ -19,7 +19,7 @@ class BannerRepository implements BannerRepositoryInterface
 
     public function all()
     {
-        return Banner::query()->latest()->whereNull('deleted_at')->get();
+        return Banner::query()->latest()->whereNull('deleted_at')->paginate(20);
     }
 
     public function find(int $id)
@@ -50,12 +50,10 @@ class BannerRepository implements BannerRepositoryInterface
 
             $banner = Banner::findOrFail($id);
 
-            if (!empty($data['image'])) {
-                $data['image'] = $this->imageService->replace(
-                    $banner->image,
-                    $data['image'],
-                    'banners'
-                );
+            if (!empty($data['image']) && is_file($data['image'])) {
+                $data['image'] = $this->imageService->replace($banner->image, $data['image'], 'banners');
+            } else {
+                $data['image'] = $banner->image;
             }
 
             $banner->update(Arr::only($data, [

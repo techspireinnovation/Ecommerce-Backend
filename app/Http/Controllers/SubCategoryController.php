@@ -5,21 +5,27 @@ use App\Http\Requests\SubCategory\StoreRequest;
 use App\Http\Requests\SubCategory\UpdateRequest;
 use App\Http\Resources\SubCategoryResource;
 use App\Repositories\Interfaces\SubCategoryRepositoryInterface;
+use App\Services\PaginationService;
 
 
 class SubCategoryController extends Controller
 {
     private SubCategoryRepositoryInterface $subCategoryRepository;
-    public function __construct(SubCategoryRepositoryInterface $subCategoryRepository)
+    private PaginationService $paginationService;
+    public function __construct(SubCategoryRepositoryInterface $subCategoryRepository, PaginationService $paginationService)
     {
         $this->subCategoryRepository = $subCategoryRepository;
+        $this->paginationService = $paginationService;
     }
     public function index()
     {
         $subcategories = $this->subCategoryRepository->all();
+        $pagination = $this->paginationService->format($subcategories);
+
         return response()->json([
             'success' => true,
             'data' => SubCategoryResource::collection($subcategories),
+            ...$pagination
         ]);
     }
     public function show(int $id)

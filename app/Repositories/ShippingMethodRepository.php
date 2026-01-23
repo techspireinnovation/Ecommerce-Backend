@@ -11,7 +11,7 @@ class ShippingMethodRepository implements ShippingMethodRepositoryInterface
 {
     public function all()
     {
-        return ShippingMethod::query()->whereNull('deleted_at')->get();
+        return ShippingMethod::query()->whereNull('deleted_at')->paginate(20);
     }
     public function setDefaultPerPage(int $perPage): void
     {

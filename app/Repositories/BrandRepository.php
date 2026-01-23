@@ -66,11 +66,11 @@ class BrandRepository implements BrandRepositoryInterface
         return DB::transaction(function () use ($id, $data) {
             $brand = Brand::findOrFail($id);
 
-            // Brand image
-            if (!empty($data['image'])) {
+            if (!empty($data['image']) && is_file($data['image'])) {
                 $data['image'] = $this->imageService->replace($brand->image, $data['image'], 'brands');
+            } else {
+                $data['image'] = $brand->image;
             }
-
             // Slug
             if (isset($data['name']) && $data['name'] !== $brand->name) {
                 $data['slug'] = $this->slugService->createUniqueSlug($data['name'], Brand::class);
@@ -83,8 +83,10 @@ class BrandRepository implements BrandRepositoryInterface
 
             // Update SEO
             $seoData = Arr::only($data, ['seo_title', 'seo_description', 'seo_keywords', 'seo_image']);
-            if (!empty($seoData['seo_image'])) {
+            if (!empty($seoData['seo_image']) && is_file($seoData['seo_image'])) {
                 $seoData['seo_image'] = $this->imageService->replace($brand->seo?->seo_image, $seoData['seo_image'], 'brands');
+            } elseif (isset($brand->seo->seo_image)) {
+                $seoData['seo_image'] = $brand->seo->seo_image;
             }
 
             if ($brand->seo) {

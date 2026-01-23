@@ -17,7 +17,7 @@ class WishlistRepository implements WishlistRepositoryInterface
             ->with($this->with)
             ->forAuthUser()
             ->whereNull('deleted_at')
-            ->get();
+            ->paginate(20);
     }
 
     public function find(int $id)

@@ -8,23 +8,31 @@ use App\Http\Requests\Product\UpdateRequest;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\ProductSeoResource;
 use App\Repositories\Interfaces\ProductRepositoryInterface;
+use App\Services\PaginationService;
 
 class ProductController extends Controller
 {
     private ProductRepositoryInterface $productRepository;
+    private PaginationService $paginationService;
 
-    public function __construct(ProductRepositoryInterface $productRepository)
+
+    public function __construct(ProductRepositoryInterface $productRepository, PaginationService $paginationService)
     {
         $this->productRepository = $productRepository;
+        $this->paginationService = $paginationService;
+
     }
 
     public function index()
     {
         $products = $this->productRepository->all();
+        $pagination = $this->paginationService->format($products);
+
 
         return response()->json([
             'success' => true,
             'data' => ProductResource::collection($products),
+            ...$pagination
         ]);
     }
 

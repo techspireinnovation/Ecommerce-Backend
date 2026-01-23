@@ -33,7 +33,7 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function all()
     {
-        return Product::with(['seo', 'specifications', 'variants.storages'])->get();
+        return Product::with(['seo', 'specifications', 'variants.storages'])->paginate(20);
     }
 
     public function find(int $id)

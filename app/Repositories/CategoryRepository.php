@@ -24,7 +24,7 @@ class CategoryRepository implements CategoryRepositoryInterface
 
     public function all()
     {
-        return Category::with('seo')->whereNull('deleted_at')->get();
+        return Category::with('seo')->whereNull('deleted_at')->paginate(20);
     }
     public function find(int $id)
     {
@@ -51,13 +51,20 @@ class CategoryRepository implements CategoryRepositoryInterface
         });
     }
 
+
+
+
     public function update(int $id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
             $category = Category::findOrFail($id);
-            if (!empty($data['image'])) {
+
+            if (!empty($data['image']) && is_file($data['image'])) {
                 $data['image'] = $this->imageService->replace($category->image, $data['image'], 'categories');
+            } else {
+                $data['image'] = $category->image;
             }
+
             if (isset($data['name']) && $data['name'] != $category->name) {
                 $data['slug'] = $this->slugService->createUniqueSlug($data['name'], Category::class);
             } else {
@@ -65,13 +72,17 @@ class CategoryRepository implements CategoryRepositoryInterface
             }
 
             $category->update(Arr::only($data, ['name', 'slug', 'image', 'status']));
+
             $seoData = Arr::only($data, ['seo_title', 'seo_description', 'seo_keywords', 'seo_image']);
-            if (!empty($seoData['seo_image'])) {
+
+            if (!empty($seoData['seo_image']) && is_file($seoData['seo_image'])) {
                 $seoData['seo_image'] = $this->imageService->replace($category->seo?->seo_image, $seoData['seo_image'], 'categories');
+            } elseif (isset($category->seo->seo_image)) {
+                $seoData['seo_image'] = $category->seo->seo_image;
             }
+
             if ($category->seo) {
                 $category->seo->update($seoData);
-
             } else {
                 $seoData['reference_id'] = $category->id;
                 $seoData['type'] = 2;
@@ -79,10 +90,10 @@ class CategoryRepository implements CategoryRepositoryInterface
             }
 
             return $category->load('seo');
-
         });
-
     }
+
+
 
     public function delete(int $id)
     {
