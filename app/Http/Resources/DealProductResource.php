@@ -22,6 +22,7 @@ class DealProductResource extends JsonResource
                     )->toArray(),
                 ];
             })->toArray(),
+           
         ];
     }
 }

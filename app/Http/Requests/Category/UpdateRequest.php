@@ -24,7 +24,7 @@ class UpdateRequest extends FormRequest
                     ->ignore($categoryId)
                     ->whereNull('deleted_at')
             ],
-            'image' => 'required|file|mimes:japg,jpeg,png,svg,webp',
+            'image' => 'required|file|mimes:jpg,jpeg,png,svg,webp',
             'status' => 'sometimes|in:0,1',
             //seo details
             'seo_title' => 'required|string|max:255',
