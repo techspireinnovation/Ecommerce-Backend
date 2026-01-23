@@ -7,6 +7,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DealController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ShippingMethodController;
 use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\WishlistController;
@@ -81,7 +82,7 @@ Route::middleware([RefreshTokensMiddleware::class, 'role:admin'])->prefix('admin
 
     Route::apiResource('banners', BannerController::class);
     Route::apiResource('deals', DealController::class);
-
+    Route::apiResource('shipping-methods', ShippingMethodController::class);
 
 });
 

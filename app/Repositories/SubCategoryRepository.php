@@ -21,11 +21,11 @@ class SubCategoryRepository implements SubCategoryRepositoryInterface
 
     public function all()
     {
-        return SubCategory::with('seo')->get();
+        return SubCategory::with('seo')->whereNull('deleted_at')->get();
     }
     public function find(int $id)
     {
-        return SubCategory::with('seo')->findOrFail($id);
+        return SubCategory::with('seo')->whereNull('deleted_at')->findOrFail($id);
     }
     public function store(array $data)
     {

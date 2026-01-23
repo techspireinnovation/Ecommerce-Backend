@@ -18,7 +18,7 @@ class StoreRequest extends FormRequest
     {
         return [
 
-            // Product
+        
             'name' => [
                 'required',
                 'string',
@@ -39,9 +39,11 @@ class StoreRequest extends FormRequest
             'overview' => 'required|string',
             'price' => 'required|integer|min:0',
             'discount_percentage' => 'nullable|integer|min:0|max:100',
+            'weight_type' => 'required|in:1,2',
+            'weight' => 'required|integer|min:0',
             'status' => 'sometimes|in:0,1,3,4',
 
-            // Tags / Highlights / Policies
+
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:50',
 
@@ -55,20 +57,20 @@ class StoreRequest extends FormRequest
             'policies.*.type' => 'required|in:1,2,3',
 
 
-            // Specifications
+
             'specifications' => 'required|array',
             'specifications.*.title' => 'required|string|max:100',
             'specifications.*.items' => 'required|array|min:1',
             'specifications.*.items.*.key' => 'required|string|max:100',
             'specifications.*.items.*.value' => 'required|string|max:255',
 
-            // Variants
+
             'variants' => 'required|array|min:1',
             'variants.*.color' => 'required|string|max:100',
             'variants.*.images' => 'required|array|min:1',
             'variants.*.images.*' => 'required|file|mimes:jpg,jpeg,png,svg,webp',
 
-            // Variant Storages
+
             'variants.*.storages' => 'required|array|min:1',
             'variants.*.storages.*.storage' => 'required|string|max:100',
             'variants.*.storages.*.quantity' => 'required|integer|min:0',
@@ -125,6 +127,14 @@ class StoreRequest extends FormRequest
             'policies.*.title.required' => 'Policy title is required.',
             'policies.*.content.required' => 'Policy content is required.',
             'policies.*.type.required' => 'Policy type is required.',
+
+            'weight_type.required' => 'Weight type is required.',
+            'weight_type.in' => 'Weight type must be 1 (Gram) or 2 (Kilogram).',
+
+            'weight.required' => 'Product weight is required.',
+            'weight.integer' => 'Product weight must be a valid integer.',
+            'weight.min' => 'Product weight must be at least 0.',
+
 
             'specifications.*.title.required' => 'Specification title is required.',
             'specifications.*.items.required' => 'Specification items are required.',

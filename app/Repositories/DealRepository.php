@@ -25,7 +25,9 @@ class DealRepository implements DealRepositoryInterface
             'products.brand',
             'products.subcategory',
             'products.variants.storages',
-        ])->get();
+        ])
+        ->whereNull('deleted_at')
+        ->get();
     }
 
     public function find(int $id)
@@ -34,7 +36,9 @@ class DealRepository implements DealRepositoryInterface
             'products.brand',
             'products.subcategory',
             'products.variants.storages',
-        ])->findOrFail($id);
+        ])
+        ->whereNull('deleted_at')
+        ->findOrFail($id);
     }
 
 

@@ -16,6 +16,7 @@ class WishlistRepository implements WishlistRepositoryInterface
         return Wishlist::query()
             ->with($this->with)
             ->forAuthUser()
+            ->whereNull('deleted_at')
             ->get();
     }
 
@@ -24,6 +25,7 @@ class WishlistRepository implements WishlistRepositoryInterface
         return Wishlist::query()
             ->with($this->with)
             ->forAuthUser()
+            ->whereNull('deleted_at')
             ->findOrFail($id);
     }
 

@@ -22,7 +22,7 @@ class StoreRequest extends FormRequest
             'image' => 'required|file|mimes:jpg,jpeg,png,svg,webp',
             'type' => 'required|in:1,2,3',
             'amount' => 'nullable|integer|required_if:type,3',
-            'start_date' => 'nullable|date|required_if:type,3',
+            'start_date' => 'nullable|date|required_if:type,3|after_or_equal:today',
             'end_date' => 'nullable|date|required_if:type,3|after_or_equal:start_date',
             'status' => 'sometimes|in:0,1',
             'product_ids' => 'required|array|min:1',
@@ -56,6 +56,7 @@ class StoreRequest extends FormRequest
 
             'start_date.required_if' => 'Start date is required for flash sale deals.',
             'start_date.date' => 'Start date must be a valid date.',
+            'start_date.after_or_equal' => 'Start date cannot be in the past.',
 
             'end_date.required_if' => 'End date is required for flash sale deals.',
             'end_date.date' => 'End date must be a valid date.',

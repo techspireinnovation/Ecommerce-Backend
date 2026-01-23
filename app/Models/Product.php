@@ -22,11 +22,15 @@ class Product extends Model
         'discount_percentage',
         'highlights',
         'policies',
+        'weight',
         'tags',
         'status',
     ];
 
     protected $casts = [
+        'price' => 'decimal:2',
+        'weight' => 'decimal:2',
+        'discount_percentage' => 'decimal:2',
         'highlights' => 'array',
         'policies' => 'array',
         'tags' => 'array',
@@ -41,7 +45,7 @@ class Product extends Model
     {
         return $this->belongsTo(Brand::class);
     }
-  
+
     public function subcategory()
     {
         return $this->belongsTo(SubCategory::class, 'subcategory_id');

@@ -13,10 +13,12 @@ use App\Repositories\Interfaces\CartRepositoryInterface;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\DealRepositoryInterface;
 use App\Repositories\Interfaces\ProductRepositoryInterface;
+use App\Repositories\Interfaces\ShippingMethodRepositoryInterface;
 use App\Repositories\Interfaces\SiteSettingRepositoryInterface;
 use App\Repositories\Interfaces\SubCategoryRepositoryInterface;
 use App\Repositories\Interfaces\WishlistRepositoryInterface;
 use App\Repositories\ProductRepository;
+use App\Repositories\ShippingMethodRepository;
 use App\Repositories\SiteSettingRepository;
 use App\Repositories\SubCategoryRepository;
 use App\Repositories\WishlistRepository;
@@ -40,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(DealRepositoryInterface::class, DealRepository::class);
         $this->app->bind(CartRepositoryInterface::class, CartRepository::class);
         $this->app->bind(WishlistRepositoryInterface::class, WishlistRepository::class);
+        $this->app->bind(ShippingMethodRepositoryInterface::class, ShippingMethodRepository::class);
 
     }
 

@@ -16,7 +16,7 @@ class CartRepository implements CartRepositoryInterface
             'product',
             'productVariantStorage',
             'user'
-        ])->where('status', 0)->get();
+        ])->where('status', 0)->whereNull('deleted_at')->get();
     }
 
     public function find(int $id)
@@ -25,7 +25,7 @@ class CartRepository implements CartRepositoryInterface
             'product',
             'productVariantStorage',
             'user'
-        ])->where('status', 0)->findOrFail($id);
+        ])->where('status', 0)->whereNull('deleted_at')->findOrFail($id);
     }
 
 

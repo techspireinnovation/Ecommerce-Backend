@@ -33,7 +33,7 @@ class SiteSettingRepository implements SiteSettingRepositoryInterface
     {
         return DB::transaction(function () use ($data) {
 
-            $siteSetting = SiteSetting::first();
+            $siteSetting = SiteSetting::query()->first();
             if (!empty($data['logo_image']) && $data['logo_image'] instanceof \Illuminate\Http\UploadedFile) {
                 $data['logo_image'] = $siteSetting
                     ? $this->imageService->replace(
@@ -90,7 +90,7 @@ class SiteSettingRepository implements SiteSettingRepositoryInterface
 
             $data['address_id'] = $siteAddress->id;
 
-         
+
             $siteSetting = $siteSetting
                 ? tap($siteSetting)->update($data)
                 : SiteSetting::create($data);

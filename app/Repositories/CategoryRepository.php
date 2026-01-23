@@ -24,11 +24,11 @@ class CategoryRepository implements CategoryRepositoryInterface
 
     public function all()
     {
-        return Category::with('seo')->get();
+        return Category::with('seo')->whereNull('deleted_at')->get();
     }
     public function find(int $id)
     {
-        return Category::with('seo')->findOrFail($id);
+        return Category::with('seo')->whereNull('deleted_at')->findOrFail($id);
     }
     public function store(array $data)
     {

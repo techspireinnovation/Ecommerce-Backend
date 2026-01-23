@@ -19,12 +19,12 @@ class BannerRepository implements BannerRepositoryInterface
 
     public function all()
     {
-        return Banner::query()->latest()->get();
+        return Banner::query()->latest()->whereNull('deleted_at')->get();
     }
 
     public function find(int $id)
     {
-        return Banner::findOrFail($id);
+        return Banner::query()->whereNull('deleted_at')->findOrFail($id);
     }
 
     public function store(array $data)

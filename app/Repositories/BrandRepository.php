@@ -7,6 +7,7 @@ use App\Models\SeoDetail;
 use App\Repositories\Interfaces\BrandRepositoryInterface;
 use App\Services\ImageService;
 use App\Services\SlugService;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -22,14 +23,17 @@ class BrandRepository implements BrandRepositoryInterface
         $this->slugService = $slugService;
     }
 
-    public function all()
+    public function all(): LengthAwarePaginator
     {
-        return Brand::with('seo')->get();
+        return Brand::with('seo')
+        ->whereNull('deleted_at')
+        ->orderBy('id', 'desc')
+        ->paginate(20);
     }
 
-    public function find(int $id)
+    public function find(int $id): Brand
     {
-        return Brand::with('seo')->findOrFail($id);
+        return Brand::with('seo')->whereNull('deleted_at')->findOrFail($id);
     }
 
     public function store(array $data)

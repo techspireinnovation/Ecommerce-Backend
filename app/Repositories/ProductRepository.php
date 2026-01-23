@@ -59,7 +59,7 @@ class ProductRepository implements ProductRepositoryInterface
                 'overview' => $data['overview'],
                 'price' => $data['price'],
                 'discount_percentage' => $data['discount_percentage'] ?? null,
-                'status' => $data['status'] ?? 0,
+                'status' => 1, // force status 1 initially
                 'highlights' => $data['highlights'],
                 'policies' => $data['policies'],
                 'tags' => $data['tags'] ?? [],
@@ -175,6 +175,8 @@ class ProductRepository implements ProductRepositoryInterface
             $seoData['type'] = 4;
             SeoDetail::create($seoData);
         }
+        $product->update(['status' => 0]);
+
 
         return $product->load('seo');
     }
