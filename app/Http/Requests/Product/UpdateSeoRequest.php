@@ -2,12 +2,19 @@
 
 namespace App\Http\Requests\Product;
 
+use App\Services\UpdateImageHandlerService;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StoreAndUpdateSeoRequest extends FormRequest
+class UpdateSeoRequest extends FormRequest
 {
+    private UpdateImageHandlerService $updateImageHandlerService;
+
+    public function __construct(UpdateImageHandlerService $updateImageHandlerService)
+    {
+        $this->updateImageHandlerService = $updateImageHandlerService;
+    }
     public function authorize()
     {
         return true;
@@ -20,7 +27,16 @@ class StoreAndUpdateSeoRequest extends FormRequest
             'seo_description' => 'required|string',
             'seo_keywords' => 'required|array|min:1',
             'seo_keywords.*' => 'string|max:50',
-            'seo_image' => 'required|file|mimes:jpg,jpeg,png,svg,webp',
+
+            'seo_image' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $result = $this->updateImageHandlerService->validateFileOrString($value, 'SEO image');
+                    if (!$result['valid']) {
+                        $fail($result['message']);
+                    }
+                }
+            ],
         ];
     }
 
@@ -31,8 +47,7 @@ class StoreAndUpdateSeoRequest extends FormRequest
             'seo_description.required' => 'SEO description is required.',
             'seo_keywords.required' => 'At least one SEO keyword is required.',
             'seo_keywords.array' => 'SEO keywords must be an array.',
-            'seo_image.file' => 'SEO image must be a valid file.',
-            'seo_image.mimes' => 'SEO image must be a file of type: jpg, jpeg, png, svg, webp.',
+
         ];
     }
     protected function failedValidation(Validator $validator)

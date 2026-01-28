@@ -53,8 +53,10 @@ class UpdateRequest extends FormRequest
             ],
             'summary' => 'required|string',
             'overview' => 'required|string',
-            'price' => 'required|integer|min:0',
-            'discount_percentage' => 'nullable|integer|min:0|max:100',
+            'price' => 'required|numeric|min:0',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'weight_type' => 'required|in:1,2',
+            'weight' => 'required|numeric|min:0',
             'status' => 'sometimes|in:0,1,3,4',
 
             'tags' => 'nullable|array',
@@ -78,7 +80,27 @@ class UpdateRequest extends FormRequest
             'variants' => 'required|array|min:1',
             'variants.*.color' => 'required|string|max:100',
             'variants.*.images' => 'required|array|min:1',
-            'variants.*.images.*' => 'required|file|mimes:jpg,jpeg,png,svg,webp',
+            'variants.*.images.*' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    // Case 1: Existing image path / URL → allow
+                    if (is_string($value)) {
+                        return;
+                    }
+
+                    // Case 2: New uploaded file → validate type
+                    if ($value instanceof \Illuminate\Http\UploadedFile) {
+                        if (!in_array($value->getClientOriginalExtension(), ['jpg', 'jpeg', 'png', 'webp'])) {
+                            $fail("The {$attribute} must be an image file (jpg, jpeg, png, webp).");
+                        }
+                        return;
+                    }
+
+                    // Anything else → invalid
+                    $fail("The {$attribute} must be a valid image or existing image path.");
+                }
+            ],
+
 
             'variants.*.storages' => 'required|array|min:1',
             'variants.*.storages.*.storage' => 'required|string|max:100',
@@ -127,6 +149,14 @@ class UpdateRequest extends FormRequest
             'price.required' => 'Product price is required.',
             'price.min' => 'Product price must be at least 0.',
             'discount_percentage.max' => 'Discount cannot exceed 100%.',
+
+
+            'weight_type.required' => 'Weight type is required.',
+            'weight_type.in' => 'Weight type must be 1 (Gram) or 2 (Kilogram).',
+
+            'weight.required' => 'Product weight is required.',
+            'weight.numeric' => 'Product weight must be a valid number.',
+            'weight.min' => 'Product weight must be at least 0.',
 
             'highlights.required' => 'At least one highlight is required.',
             'highlights.*.title.required' => 'Highlight title is required.',

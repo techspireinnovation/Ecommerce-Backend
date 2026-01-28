@@ -11,25 +11,18 @@ class ShippingMethod extends Model
 
     protected $table = 'shipping_methods';
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'delivery_type',
-        'charge_amount',
-        'free_delivery_min_amount',
-        'status',
+        'weight_to',
+        'charge',
+        'free_shipping_threshold',
     ];
 
-    /**
-     * The attributes that should be cast to native types.
-     */
     protected $casts = [
         'delivery_type' => 'integer',
-        'charge_amount' => 'decimal:2',
-        'free_delivery_min_amount' => 'decimal:2',
-        'status' => 'integer',
+        'weight_to' => 'decimal:2',
+        'charge' => 'decimal:2',
+        'free_shipping_threshold' => 'decimal:2',
     ];
 
-   
 }

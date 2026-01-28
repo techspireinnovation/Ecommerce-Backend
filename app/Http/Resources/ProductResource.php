@@ -27,7 +27,22 @@ class ProductResource extends JsonResource
             'summary' => $this->summary,
             'overview' => $this->overview,
             'price' => $this->price,
-            'discount_percentage' => $this->discount_percentage,
+            'discount_percentage' => $this->discount_percentage !== null
+                ? (float) $this->discount_percentage
+                : null,
+
+            'weight' => (float) $this->weight,
+            'weight_type' => (int) $this->weight_type,
+            'weight_type_label' => match ((int) $this->weight_type) {
+                1 => 'gram',
+                2 => 'kilogram',
+                default => 'unknown',
+            },
+            'weight_display' => match ((int) $this->weight_type) {
+                1 => ($this->weight * 1000) . ' g',
+                2 => $this->weight . ' kg',
+                default => null,
+            },
 
             'status' => match ($this->status) {
                 0 => 'active',
@@ -56,7 +71,7 @@ class ProductResource extends JsonResource
                 return [
                     'id' => $variant->id,
                     'color' => $variant->color,
-                    'images' => collect($variant->images)->map(
+                    'images' => $variant->images()->pluck('image')->map(
                         fn($img) => asset('storage/' . $img)
                     )->toArray(),
 
@@ -71,6 +86,7 @@ class ProductResource extends JsonResource
                     })->toArray(),
                 ];
             })->toArray(),
+
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }

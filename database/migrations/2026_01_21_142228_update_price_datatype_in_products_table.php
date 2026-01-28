@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,10 +13,13 @@ return new class extends Migration
         Schema::table('products', function (Blueprint $table) {
             $table->decimal('price', 10, 2)->change();
             $table->decimal('discount_percentage', 5, 2)->nullable()->change();
+            $table->tinyInteger('weight_type')
+                ->after('policies')
+                ->comment('1=gram, 2=kilogram');
 
             $table->decimal('weight', 8, 2)
-                  ->after('policies')
-                  ->comment('Product weight in kilograms (kg)');
+                ->after('weight_type')
+                ->comment('Product weight in kilograms (kg)');
         });
     }
 
@@ -29,7 +31,7 @@ return new class extends Migration
         Schema::table('products', function (Blueprint $table) {
             $table->integer('price')->change();
             $table->integer('discount_percentage')->nullable()->change();
-
+            $table->dropColumn('weight_type');
             $table->dropColumn('weight');
         });
     }

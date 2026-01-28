@@ -17,9 +17,6 @@ return new class extends Migration
             $table->tinyInteger('delivery_type')
                   ->comment('1 = Inside Valley, 2 = Outside Valley');
 
-            $table->decimal('weight_from', 8, 2)
-                  ->comment('Minimum applicable order weight in kilograms (kg)');
-
             $table->decimal('weight_to', 8, 2)
                   ->comment('Maximum applicable order weight in kilograms (kg)');
 
@@ -29,10 +26,6 @@ return new class extends Migration
             $table->decimal('free_shipping_threshold', 10, 2)
                   ->default(0)
                   ->comment('Order subtotal required for free shipping (0 = disabled)');
-
-            $table->tinyInteger('status')
-                  ->default(0)
-                  ->comment('0 = Active, 1 = Inactive');
 
             $table->timestamps();
             $table->softDeletes();

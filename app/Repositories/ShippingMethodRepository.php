@@ -13,69 +13,41 @@ class ShippingMethodRepository implements ShippingMethodRepositoryInterface
     {
         return ShippingMethod::query()->whereNull('deleted_at')->paginate(20);
     }
-    public function setDefaultPerPage(int $perPage): void
-    {
-        $this->defaultPerPage = $perPage;
-    }
+
     public function find(int $id)
     {
         return ShippingMethod::query()->whereNull('deleted_at')->findOrFail($id);
     }
 
-    public function store(array $data)
+    public function store(array $data): ShippingMethod
     {
         return DB::transaction(function () use ($data) {
 
-            // Make sure status is integer
-            $data['status'] = isset($data['status']) ? (int) $data['status'] : 0;
-
-            // Create the new record first
-            $newRecord = ShippingMethod::create(Arr::only($data, [
-                'delivery_type',
-                'charge_amount',
-                'free_delivery_min_amount',
-                'status'
-            ]));
-
-            // If new record is active (status 0), deactivate all other active records with same delivery_type
-            if ($newRecord->status === 0) {
-                ShippingMethod::query()
-                    ->where('delivery_type', $newRecord->delivery_type)
-                    ->where('status', 0)
-                    ->where('id', '!=', $newRecord->id)
-                    ->whereNull('deleted_at')
-                    ->update(['status' => 1]);
-            }
-
-            return $newRecord;
+            return ShippingMethod::create([
+                'delivery_type' => $data['delivery_type'],
+                'weight_to' => $data['weight_to'],
+                'charge' => $data['charge'],
+                'free_shipping_threshold' => $data['free_shipping_threshold'] ?? null,
+            ]);
         });
     }
 
-    public function update(int $id, array $data)
+    public function update(int $id, array $data): ShippingMethod
     {
         return DB::transaction(function () use ($id, $data) {
-
             $method = ShippingMethod::findOrFail($id);
 
-            if (isset($data['status'])) {
-                $data['status'] = (int) $data['status'];
-            }
 
-            if (isset($data['status']) && $data['status'] === 0) {
-                ShippingMethod::query()
-                    ->where('delivery_type', $method->delivery_type)
-                    ->where('status', 0)
-                    ->where('id', '!=', $id)
-                    ->whereNull('deleted_at')
-                    ->update(['status' => 1]);
-            }
+            // Update the current method
+            $method->update([
+                'delivery_type' => $data['delivery_type'], // add this line
+                'weight_to' => $data['weight_to'],
+                'charge' => $data['charge'],
+                'free_shipping_threshold' => $data['free_shipping_threshold'] ?? $method->free_shipping_threshold,
+                'status' => $data['status'] ?? $method->status,
+            ]);
 
-            $method->update(Arr::only($data, [
-                'delivery_type',
-                'charge_amount',
-                'free_delivery_min_amount',
-                'status'
-            ]));
+
 
             return $method;
         });
@@ -84,8 +56,21 @@ class ShippingMethodRepository implements ShippingMethodRepositoryInterface
     public function delete(int $id)
     {
         $method = ShippingMethod::findOrFail($id);
-        $method->delete($id);
-    }
 
+        $latestMethod = ShippingMethod::query()
+            ->where('delivery_type', $method->delivery_type)
+            ->whereNull('deleted_at')
+            ->orderByDesc('weight_to')
+            ->first();
+
+        if ($latestMethod->id !== $method->id) {
+            throw new \Exception("Only the latest shipping method for this delivery type can be deleted.");
+        }
+
+        return DB::transaction(function () use ($method) {
+            $method->delete();
+            return true;
+        });
+    }
 
 }
