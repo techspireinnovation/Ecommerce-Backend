@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Product\StoreRequest;
-use App\Http\Requests\Product\StoreAndUpdateSeoRequest;
+use App\Http\Requests\Product\StoreSeoRequest;
+use App\Http\Requests\Product\UpdateSeoRequest;
+
 use App\Http\Requests\Product\UpdateRequest;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\ProductSeoResource;
@@ -67,7 +69,7 @@ class ProductController extends Controller
             'id' => $product->id,
         ]);
     }
-    public function storeSeo(StoreAndUpdateSeoRequest $request, $id)
+    public function storeSeo(StoreSeoRequest $request, $id)
     {
         $data = $request->validated();
         $this->productRepository->storeSeo($id, $data);
@@ -77,10 +79,10 @@ class ProductController extends Controller
             'message' => 'SEO details saved successfully.',
         ]);
     }
-    public function updateSeo(StoreAndUpdateSeoRequest $request, $id)
+    public function updateSeo(UpdateSeoRequest $request, $id)
     {
         $data = $request->validated();
-        $this->productRepository->storeSeo($id, $data);
+        $this->productRepository->updateSeo($id, $data);
 
         return response()->json([
             'success' => true,

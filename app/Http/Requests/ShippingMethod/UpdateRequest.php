@@ -1,9 +1,12 @@
 <?php
+
 namespace App\Http\Requests\ShippingMethod;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Models\ShippingMethod;
+use Illuminate\Validation\Rule;
 
 class UpdateRequest extends FormRequest
 {
@@ -12,27 +15,91 @@ class UpdateRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'weight_to' => $this->has('weight_to') ? round(max(0, (float) $this->weight_to), 2) : null,
+            'charge' => $this->has('charge') ? round(max(0, (float) $this->charge), 2) : null,
+            'free_shipping_threshold' => $this->has('free_shipping_threshold')
+                ? round(max(0, (float) $this->free_shipping_threshold), 2)
+                : null,
+        ]);
+    }
     public function rules()
     {
+        $methodId = $this->route('shipping_method');
+
         return [
             'delivery_type' => 'required|in:1,2',
-            'charge_amount' => 'required|numeric|min:0',
-            'free_delivery_min_amount' => 'nullable|numeric|min:0',
-            'status' => 'sometimes|in:0,1',
+
+            'weight_to' => [
+                'required',
+                'numeric',
+                'min:0',
+                function ($attr, $value, $fail) use ($methodId) {
+                    $last = ShippingMethod::query()->where('delivery_type', $this->delivery_type)
+                        ->where('id', '<>', $methodId)
+                        ->whereNull('deleted_at')
+                        ->orderByDesc('weight_to')
+                        ->first();
+
+                    if ($last && $value <= $last->weight_to) {
+                        $fail("weight_to must be greater than previous weight ({$last->weight_to} kg).");
+                    }
+                }
+            ],
+
+            'charge' => [
+                'required',
+                'numeric',
+                'min:0',
+                function ($attr, $value, $fail) use ($methodId) {
+                    $last = ShippingMethod::query()->where('delivery_type', $this->delivery_type)
+                        ->where('id', '<>', $methodId)
+                        ->whereNull('deleted_at')
+                        ->orderByDesc('weight_to')
+                        ->first();
+
+                    if ($last && $value <= $last->charge) {
+                        $fail("Charge must be greater than the previous charge ({$last->charge} Rs).");
+                    }
+                }
+            ],
+
+            'free_shipping_threshold' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                function ($attr, $value, $fail) use ($methodId) {
+                    $last = ShippingMethod::query()->where('delivery_type', $this->delivery_type)
+                        ->where('id', '<>', $methodId)
+                        ->whereNull('deleted_at')
+                        ->orderByDesc('weight_to')
+                        ->first();
+
+                    if ($last && $value !== null && $last->free_shipping_threshold !== null && $value <= $last->free_shipping_threshold) {
+                        $fail("Free shipping threshold must be greater than the previous value ({$last->free_shipping_threshold} Rs).");
+                    }
+                }
+            ],
         ];
     }
 
     public function messages()
     {
         return [
-            'delivery_type.required' => 'Delivery type is required.',
-            'delivery_type.in' => 'Delivery type must be 1 (Inside Valley) or 2 (Outside Valley).',
-            'charge_amount.required' => 'Charge amount is required.',
-            'charge_amount.numeric' => 'Charge amount must be a number.',
-            'charge_amount.min' => 'Charge amount cannot be negative.',
-            'free_delivery_min_amount.numeric' => 'Free delivery minimum amount must be a number.',
-            'free_delivery_min_amount.min' => 'Free delivery minimum amount cannot be negative.',
-            'status.in' => 'Status must be 0 (Active) or 1 (Inactive).',
+            'weight_to.required' => 'Maximum weight is required.',
+            'weight_to.numeric' => 'Maximum weight must be a valid number.',
+            'weight_to.min' => 'Maximum weight cannot be negative.',
+
+            'charge.required' => 'Shipping charge is required.',
+            'charge.numeric' => 'Shipping charge must be a valid number.',
+            'charge.min' => 'Shipping charge cannot be negative.',
+
+            'free_shipping_threshold.numeric' => 'Free shipping threshold must be a valid number.',
+            'free_shipping_threshold.min' => 'Free shipping threshold cannot be negative.',
+
+            'status.in' => 'Status must be 0 (Inactive) or 1 (Active).',
         ];
     }
 
@@ -40,10 +107,11 @@ class UpdateRequest extends FormRequest
     {
         $errors = $validator->errors()->toArray();
         $firstErrorMessage = reset($errors)[0] ?? 'Validation error';
+
         throw new HttpResponseException(response()->json([
             'success' => false,
             'message' => $firstErrorMessage,
-            'error' => $errors
+            'error' => $errors,
         ], 422));
     }
 }

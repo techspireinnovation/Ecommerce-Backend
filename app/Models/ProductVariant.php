@@ -14,12 +14,9 @@ class ProductVariant extends Model
     protected $fillable = [
         'product_id',
         'color',
-        'images',
     ];
 
-    protected $casts = [
-        'images' => 'array',
-    ];
+
 
     public function product()
     {
@@ -30,12 +27,20 @@ class ProductVariant extends Model
     {
         return $this->hasMany(ProductVariantStorage::class);
     }
-    protected static function booted()
-    {
-        static::deleting(function ($variant) {
-            if ($variant->isForceDeleting()) return;
-            $variant->storages()->each(fn($storage) => $storage->delete());
-        });
+    public function images()
+{
+    return $this->hasMany(ProductVariantImage::class, 'product_variant_id');
+}
 
-    }
+protected static function booted()
+{
+    static::deleting(function ($variant) {
+        if ($variant->isForceDeleting()) return;
+
+        $variant->storages()->each(fn($storage) => $storage->delete());
+        $variant->images()->each(fn($image) => $image->delete());
+    });
+}
+
+
 }

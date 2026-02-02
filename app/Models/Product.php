@@ -22,6 +22,7 @@ class Product extends Model
         'discount_percentage',
         'highlights',
         'policies',
+        'weight_type',
         'weight',
         'tags',
         'status',

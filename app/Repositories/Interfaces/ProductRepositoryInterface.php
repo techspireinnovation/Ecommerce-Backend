@@ -11,5 +11,6 @@ interface ProductRepositoryInterface
     public function delete(int $id);
     public function activeList();
     public function storeSeo(int $productId, array $seoData);
+    public function UpdateSeo(int $productId, array $seoData);
 
 }

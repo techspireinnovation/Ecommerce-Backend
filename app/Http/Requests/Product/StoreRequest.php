@@ -18,7 +18,7 @@ class StoreRequest extends FormRequest
     {
         return [
 
-        
+
             'name' => [
                 'required',
                 'string',
@@ -37,10 +37,10 @@ class StoreRequest extends FormRequest
             ],
             'summary' => 'required|string',
             'overview' => 'required|string',
-            'price' => 'required|integer|min:0',
-            'discount_percentage' => 'nullable|integer|min:0|max:100',
+            'price' => 'required|numeric|min:0',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
             'weight_type' => 'required|in:1,2',
-            'weight' => 'required|integer|min:0',
+            'weight' => 'required|numeric|min:0',
             'status' => 'sometimes|in:0,1,3,4',
 
 
@@ -103,6 +103,21 @@ class StoreRequest extends FormRequest
             }
         });
     }
+    protected function prepareForValidation()
+    {
+        if ($this->has('weight') && $this->has('weight_type')) {
+            $weight = (float) $this->weight;
+
+            // Convert grams to kilograms
+            if ((int) $this->weight_type === 1) {
+                $weight = $weight / 1000;
+            }
+
+            $this->merge([
+                'weight' => round($weight, 2),
+            ]);
+        }
+    }
 
     public function messages()
     {
@@ -119,6 +134,7 @@ class StoreRequest extends FormRequest
             'price.min' => 'Product price must be at least 0.',
             'discount_percentage.max' => 'Discount cannot exceed 100%.',
 
+
             'highlights.required' => 'At least one highlight is required.',
             'highlights.*.title.required' => 'Highlight title is required.',
             'highlights.*.description.required' => 'Highlight description is required.',
@@ -132,7 +148,7 @@ class StoreRequest extends FormRequest
             'weight_type.in' => 'Weight type must be 1 (Gram) or 2 (Kilogram).',
 
             'weight.required' => 'Product weight is required.',
-            'weight.integer' => 'Product weight must be a valid integer.',
+            'weight.numeric' => 'Product weight must be a valid number.',
             'weight.min' => 'Product weight must be at least 0.',
 
 
